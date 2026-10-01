@@ -1,0 +1,28 @@
+{
+  "id": "tut01",
+  "name": "Tutorial 1: Moverse",
+  "hint": "Arma una secuencia con Avanzar y Girar, y pulsa Correr. Termina con Interactuar frente al computador.",
+  "start": {
+    "row": 1,
+    "col": 1,
+    "direction": "right"
+  },
+  "map": [
+    "WWWWW",
+    "W...W",
+    "WWW.W",
+    "WG..W",
+    "WWWWW"
+  ],
+  "links": [],
+  "tasks": [
+    {
+      "text": "Apagar el computador",
+      "target": [
+        3,
+        1
+      ]
+    }
+  ],
+  "notes": []
+}

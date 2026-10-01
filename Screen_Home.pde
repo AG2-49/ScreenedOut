@@ -35,8 +35,8 @@ class HomeScreen extends Screen {
 
   void mousePressed() {
     if (playBtn.clicked()) goTo(new LevelSelectScreen());
-    else if (tutorialBtn.clicked()) goTo(new PlaceholderScreen("Tutorial", "Próximamente."));
-    else if (creditsBtn.clicked()) goTo(new PlaceholderScreen("Créditos", "Próximamente."));
+    else if (tutorialBtn.clicked()) goTo(new TutorialSelectScreen());
+    else if (creditsBtn.clicked()) goTo(new CreditsScreen());
     else if (exitBtn.clicked()) exit();
   }
 }

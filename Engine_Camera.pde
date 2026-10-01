@@ -9,6 +9,7 @@ class Camera {
   boolean needsScrollX, needsScrollY;
 
   float offsetX = 0, offsetY = 0;
+  float centerX = 0, centerY = 0;  // margen para centrar un mapa que cabe en el área
   boolean dragging = false;
   float dragStartX, dragStartY, offsetStartX, offsetStartY;
 
@@ -24,6 +25,8 @@ class Camera {
     contentH = h;
     needsScrollX = contentW > area.w;
     needsScrollY = contentH > area.h;
+    centerX = needsScrollX ? 0 : (area.w - contentW) / 2.0;
+    centerY = needsScrollY ? 0 : (area.h - contentH) / 2.0;
   }
 
   void reset() {
@@ -39,7 +42,7 @@ class Camera {
     translate(area.x, area.y);
     clip(0, 0, area.w, area.h);
     // Offset redondeado a píxel entero: evita costuras entre tiles al desplazar
-    translate(-round(offsetX), -round(offsetY));
+    translate(round(centerX) - round(offsetX), round(centerY) - round(offsetY));
   }
 
   void end() {

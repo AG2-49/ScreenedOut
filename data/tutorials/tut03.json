@@ -1,0 +1,36 @@
+{
+  "id": "tut03",
+  "name": "Tutorial 3: Notas",
+  "hint": "Las notas de tus padres traen tareas nuevas. Si usas un objeto antes de leer la nota, no pasará nada.",
+  "start": {
+    "row": 2,
+    "col": 4,
+    "direction": "up"
+  },
+  "map": [
+    "WWWWWW",
+    "WN..CW",
+    "W....W",
+    "WWWWWW"
+  ],
+  "links": [],
+  "tasks": [],
+  "notes": [
+    {
+      "at": [
+        1,
+        1
+      ],
+      "text": "Tu cama parece un nido de pájaros. Ordénala antes de que llegue la tía, ¿sí? ¡Tú puedes! — Mamá",
+      "tasks": [
+        {
+          "text": "Ordenar la cama",
+          "target": [
+            1,
+            4
+          ]
+        }
+      ]
+    }
+  ]
+}

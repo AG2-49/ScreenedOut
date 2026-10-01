@@ -14,6 +14,10 @@ class MapRenderer {
   // ¿Los bordes del mapa cuentan como "vecino"? (false = el borde se ve como vacío)
   boolean edgeCountsAsNeighbor = false;
 
+  // Casilla a resaltar (la fija la pantalla cada frame)
+  GameObject hintObj = null;
+  float hintAlpha = 0;
+
   // Se espera que la cámara ya haya aplicado su translate (Camera.begin()).
   void draw(Level level, Camera cam) {
     int firstCol = max(0, floor(cam.offsetX / TILE_SIZE));
@@ -33,6 +37,17 @@ class MapRenderer {
     for (GameObject obj : level.objects) {
       obj.draw();
     }
+
+    if (hintObj != null && hintAlpha > 0) drawHint(hintObj);
+  }
+
+  void drawHint(GameObject obj) {
+    pushStyle();
+    noFill();
+    stroke(red(hintColor), green(hintColor), blue(hintColor), 255 * hintAlpha);
+    strokeWeight(4);
+    rect(obj.col * TILE_SIZE + 3, obj.row * TILE_SIZE + 3, TILE_SIZE - 6, TILE_SIZE - 6, 8);
+    popStyle();
   }
 
   // Textura que va SOBRE el suelo en esa casilla (null = solo suelo).

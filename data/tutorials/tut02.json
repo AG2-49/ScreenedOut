@@ -1,0 +1,42 @@
+{
+  "id": "tut02",
+  "name": "Tutorial 2: Tareas",
+  "hint": "Cada tarea de la lista se cumple interactuando con su objeto: debes estar mirándolo de frente.",
+  "start": {
+    "row": 2,
+    "col": 3,
+    "direction": "up"
+  },
+  "map": [
+    "WWWWWWW",
+    "WC....W",
+    "W.....W",
+    "WL...TW",
+    "WWWWWWW"
+  ],
+  "links": [],
+  "tasks": [
+    {
+      "text": "Ordenar la cama",
+      "target": [
+        1,
+        1
+      ]
+    },
+    {
+      "text": "Lavar los platos",
+      "target": [
+        3,
+        1
+      ]
+    },
+    {
+      "text": "Sacar la basura",
+      "target": [
+        3,
+        5
+      ]
+    }
+  ],
+  "notes": []
+}

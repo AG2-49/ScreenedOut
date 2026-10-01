@@ -12,8 +12,11 @@ void setup() {
   assets = new Assets();
   assets.load();
 
-  levels = new LevelCatalog();
+  levels = new LevelCatalog("levels");
   levels.load();
+
+  tutorials = new LevelCatalog("tutorials");
+  tutorials.load();
 
   progress = new Progress();
   progress.load();

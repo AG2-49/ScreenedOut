@@ -168,23 +168,40 @@ class Player {
     startAnim(TURN_MS);
   }
 
-  // Interactúa SIN moverse. Prioridad:
-  //   1) el objeto de la casilla donde está parado (nota, botón...),
-  //   2) si ese no existe o no hizo nada (p. ej. una puerta ya abierta), el de enfrente.
-  // Los objetos con colisión (puerta cerrada) nunca están bajo el jugador, así que no hay casos absurdos.
+  GameObject frontObject(Level level) {
+    int[] d = lookingToDelta();
+    int r = row + d[1], c = col + d[0];
+    return level.inBounds(r, c) ? level.objectAt(r, c) : null;
+  }
+
+  GameObject underObject(Level level) {
+    return level.objectAt(row, col);
+  }
+
+  // El objeto que recibiría la interacción: el de enfrente tiene prioridad.
+  GameObject interactTarget(Level level) {
+    if (fell) return null;
+    GameObject front = frontObject(level);
+    if (front != null && front.interactive(level)) return front;
+    GameObject under = underObject(level);
+    if (under != null && under.interactive(level)) return under;
+    return null;
+  }
+
   void interact(Level level) {
     if (fell) return;
 
-    GameObject under = level.objectAt(row, col);
-    if (under != null && under.interact(level)) return;
+    GameObject target = interactTarget(level);
+    if (target != null) {
+      target.interact(level);
+      return;
+    }
 
-    int[] d = lookingToDelta();
-    int targetRow = row + d[1];
-    int targetCol = col + d[0];
-    if (!level.inBounds(targetRow, targetCol)) return;
-
-    GameObject front = level.objectAt(targetRow, targetCol);
-    if (front != null) front.interact(level);
+    // Nada útil: que respondan igual (avisos, repeticiones), primero el de enfrente
+    GameObject front = frontObject(level);
+    if (front != null && front.interact(level)) return;
+    GameObject under = underObject(level);
+    if (under != null && under.interact(level)) level.clearMessage();
   }
 
   void onFall() {

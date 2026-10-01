@@ -1,0 +1,85 @@
+{
+  "id": "level03",
+  "name": "Nivel 3",
+  "start": {
+    "row": 1,
+    "col": 2,
+    "direction": "left"
+  },
+  "clock": {
+    "from": "8:00",
+    "to": "12:00",
+    "text": "Solo reviso el feed un ratito…"
+  },
+  "map": [
+    "WWWWWW",
+    "WG.NBW",
+    "W.H..W",
+    "WTH..W",
+    "WWWDWW",
+    "WL.MNW",
+    "WWWWWW"
+  ],
+  "links": [
+    {
+      "from": [
+        1,
+        4
+      ],
+      "to": [
+        4,
+        3
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "text": "Apagar el computador",
+      "target": [
+        1,
+        1
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "at": [
+        1,
+        3
+      ],
+      "text": "Ya es casi mediodía y el cuarto sigue hecho un desastre. Saca la basura y dale de comer al gato: la despensa está cerrada, el interruptor del pasillo la abre. Menos pantalla y más vida, ¿sí? — Mamá",
+      "tasks": [
+        {
+          "text": "Sacar la basura",
+          "target": [
+            3,
+            1
+          ]
+        },
+        {
+          "text": "Dar de comer al gato",
+          "target": [
+            5,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "at": [
+        5,
+        4
+      ],
+      "text": "Si estás leyendo esto es que por fin saliste de la silla. ¡Bien! Ahora los platos que dejaste ayer. Te quiero, pero tu teléfono no se va a lavar los platos solo. — Papá",
+      "tasks": [
+        {
+          "text": "Lavar los platos",
+          "target": [
+            5,
+            1
+          ]
+        }
+      ]
+    }
+  ]
+}

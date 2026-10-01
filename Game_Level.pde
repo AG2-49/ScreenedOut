@@ -5,9 +5,15 @@
 //  matriz de textos; cada carácter es una casilla:
 //    .  suelo      W  pared      H  hueco
 //    D  puerta     G  computadora (escritorio)   B  botón     N  nota
+//    C  cama       T  basura     L  lavaplatos   M  comedero
 //  El TERRENO (suelo/pared/hueco) va en una matriz y los OBJETOS
 //  (puertas, botón, meta) en una lista, para poder ligarlos entre sí.
 // ============================================================
+
+// Lo que piensa el jugador al intentar usar un objeto que no le han pedido usar (aún).
+final String MSG_ALL_DONE = "“Ya hice todo lo que me pidieron.”";
+final String MSG_NOTHING  = "“¿Tengo que hacer algo aquí?”";
+final int MESSAGE_MS = 3000;   // cuánto dura un aviso sobre el mapa
 
 class Level {
   JSONObject json;          // definición original (se reutiliza en reset())
@@ -22,7 +28,15 @@ class Level {
   float startLooking;       // radianes, 0 = arriba, sentido horario
 
   boolean completed = false;
-  String message = "";      // aviso breve para mostrar al jugador
+  String message = "";      // aviso breve para mostrar al jugador (usar say(); caduca solo)
+  int messageUntil = 0;     // millis() hasta el que el aviso es visible
+
+  // Reloj de introducción (opcional): ver "clock" en el JSON del nivel y ClockIntro.
+  boolean hasClock = false;
+  int clockFrom = 8 * 60, clockTo = 10 * 60;   // en minutos desde las 0:00 (clockTo puede pasar de 1440)
+  String clockText = "";                       // frase opcional bajo el reloj
+  String hint = "";                            // ayuda opcional bajo el mapa (la usan los tutoriales)
+
   Note openNote = null;     // nota que se está leyendo (null = ninguna); el juego se pausa mientras haya una
 
   Level(JSONObject json) {
@@ -40,6 +54,7 @@ class Level {
     name = json.getString("name", id);
     completed = false;
     message = "";
+    messageUntil = 0;
     openNote = null;
 
     // ----- Mapa -----
@@ -75,6 +90,20 @@ class Level {
     startRow = start.getInt("row");
     startCol = start.getInt("col");
     startLooking = directionToAngle(start.getString("direction", "right"));
+
+    // ----- Ayuda opcional (tutoriales): {"hint": "texto"} -----
+    hint = json.getString("hint", "");
+
+    // ----- Reloj de introducción: {"from": "8:00", "to": "10:00", "text": "..."} (24 h) -----
+    hasClock = false;
+    if (json.hasKey("clock")) {
+      JSONObject c = json.getJSONObject("clock");
+      clockFrom = parseTime(c.getString("from", "8:00"), 8 * 60);
+      clockTo = parseTime(c.getString("to", "10:00"), 10 * 60);
+      if (clockTo < clockFrom) clockTo += 24 * 60;   // cruza la medianoche
+      clockText = c.getString("text", "");
+      hasClock = true;
+    }
 
     // ----- Enlaces entre objetos: {"from": [fila, col], "to": [fila, col]} -----
     if (json.hasKey("links")) {
@@ -130,6 +159,19 @@ class Level {
     }
   }
 
+  // "H:MM" (24 h) -> minutos desde las 0:00. Con formato inválido avisa y usa 'fallback'.
+  int parseTime(String s, int fallback) {
+    try {
+      String[] p = s.trim().split(":");
+      int h = Integer.parseInt(p[0].trim());
+      int m = p.length > 1 ? Integer.parseInt(p[1].trim()) : 0;
+      return h * 60 + m;
+    } catch (Exception e) {
+      println("Aviso (" + id + "): hora inválida \"" + s + "\", se usa " + fallback / 60 + ":00");
+      return fallback;
+    }
+  }
+
   // Crea una tarea; devuelve null (con aviso) si su objeto no existe, para no bloquear el nivel.
   Task parseTask(JSONObject tj, boolean revealed) {
     JSONArray p = tj.getJSONArray("target");
@@ -148,6 +190,10 @@ class Level {
       case 'G': return new Computer(row, col);
       case 'B': return new FloorButton(row, col);
       case 'N': return new Note(row, col);
+      case 'C': return new Bed(row, col);
+      case 'T': return new Trash(row, col);
+      case 'L': return new Dishes(row, col);
+      case 'M': return new Feeder(row, col);
       default:  return null;
     }
   }
@@ -194,6 +240,57 @@ class Level {
     if (!completed && allGoalsMet()) completed = true;
   }
 
+  // ----- Avisos sobre el mapa -----
+  void say(String text) {
+    message = text;
+    messageUntil = millis() + MESSAGE_MS;
+  }
+
+  void clearMessage() {
+    message = "";
+  }
+
+  // El aviso vigente ("" si no hay o ya caducó).
+  String activeMessage() {
+    return (message.length() > 0 && millis() < messageUntil) ? message : "";
+  }
+
+  // ----- Tareas y objetos: qué se puede usar y cuándo -----
+  // Un objeto está BLOQUEADO si es el objetivo de alguna tarea pero ninguna de ellas
+  // se ha revelado todavía (falta leer la nota que la añade). Hasta entonces el jugador
+  // "no sabe" que debe usarlo. Los objetos que no son objetivo de ninguna tarea
+  // (puertas de paso, botones sueltos...) nunca se bloquean.
+  boolean isLocked(GameObject o) {
+    boolean isTarget = false;
+    for (Task t : tasks) {
+      if (t.target != o) continue;
+      if (t.revealed) return false;
+      isTarget = true;
+    }
+    return isTarget;
+  }
+
+  // ¿Hay alguna tarea visible, sin cumplir, que apunte a este objeto?
+  boolean hasPendingTask(GameObject o) {
+    for (Task t : tasks) {
+      if (t.target == o && t.revealed && !t.isDone()) return true;
+    }
+    return false;
+  }
+
+  // Aviso al intentar usar un objeto bloqueado: si ya no queda nada visible por hacer,
+  // "ya hice todo"; si queda algo pendiente (u hoy no hay tareas), "¿tengo que hacer algo aquí?".
+  void sayLocked() {
+    int revealed = 0;
+    boolean allDone = true;
+    for (Task t : tasks) {
+      if (!t.revealed) continue;
+      revealed++;
+      if (!t.isDone()) allDone = false;
+    }
+    say((revealed > 0 && allDone) ? MSG_ALL_DONE : MSG_NOTHING);
+  }
+
   int notesRead() {
     int n = 0;
     for (Note note : notes) {
@@ -208,15 +305,20 @@ class Level {
 //  Catálogo: lista ordenada de niveles (data/levels/index.json)
 // ============================================================
 class LevelCatalog {
+  String folder;            // subcarpeta de data/ ("levels", "tutorials"...)
   ArrayList<String> ids = new ArrayList<String>();
   ArrayList<String> names = new ArrayList<String>();
 
+  LevelCatalog(String folder) {
+    this.folder = folder;
+  }
+
   void load() {
-    JSONArray list = loadJSONObject("levels/index.json").getJSONArray("levels");
+    JSONArray list = loadJSONObject(folder + "/index.json").getJSONArray("levels");
     for (int i = 0; i < list.size(); i++) {
       String id = list.getString(i);
       ids.add(id);
-      names.add(loadJSONObject("levels/" + id + ".json").getString("name", id));
+      names.add(loadJSONObject(folder + "/" + id + ".json").getString("name", id));
     }
   }
 
@@ -225,6 +327,6 @@ class LevelCatalog {
   String nameAt(int index) { return names.get(index); }
 
   Level create(int index) {
-    return new Level(loadJSONObject("levels/" + ids.get(index) + ".json"));
+    return new Level(loadJSONObject(folder + "/" + ids.get(index) + ".json"));
   }
 }

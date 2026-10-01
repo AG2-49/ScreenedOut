@@ -1,0 +1,40 @@
+{
+  "id": "tut04",
+  "name": "Tutorial 4: Huecos y puertas",
+  "hint": "Los huecos te hacen caer: rodéalos. Un botón puede abrir una puerta que no cede con las manos.",
+  "start": {
+    "row": 1,
+    "col": 1,
+    "direction": "right"
+  },
+  "map": [
+    "WWWWWW",
+    "W.H.BW",
+    "W....W",
+    "WWDWWW",
+    "W.G..W",
+    "WWWWWW"
+  ],
+  "links": [
+    {
+      "from": [
+        1,
+        4
+      ],
+      "to": [
+        3,
+        2
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "text": "Apagar el computador",
+      "target": [
+        4,
+        2
+      ]
+    }
+  ],
+  "notes": []
+}

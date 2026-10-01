@@ -132,6 +132,15 @@ class ProgramPanel {
       if (hover) tint(215, 225, 255);
       image(assets.iconPalette[i], bx, by);
       popStyle();
+
+      if (i == ACT_INTERACT && owner.hintAlpha() > 0) {
+        pushStyle();
+        noFill();
+        stroke(red(hintColor), green(hintColor), blue(hintColor), 255 * owner.hintAlpha());
+        strokeWeight(3);
+        rect(bx - 3, by - 3, PALETTE_BTN_SIZE + 6, PALETTE_BTN_SIZE + 6, 8);
+        popStyle();
+      }
     }
   }
 

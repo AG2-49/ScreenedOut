@@ -1,0 +1,65 @@
+{
+  "id": "level02",
+  "name": "Nivel 2",
+  "start": {
+    "row": 1,
+    "col": 2,
+    "direction": "left"
+  },
+  "clock": {
+    "from": "8:00",
+    "to": "11:00",
+    "text": "Ya casi termina este video…"
+  },
+  "map": [
+    "WWWWWW",
+    "WG...W",
+    "W...TW",
+    "WN...W",
+    "WWDWWW",
+    "WL..CW",
+    "WWWWWW"
+  ],
+  "links": [],
+  "tasks": [
+    {
+      "text": "Apagar el computador",
+      "target": [
+        1,
+        1
+      ]
+    },
+    {
+      "text": "Sacar la basura",
+      "target": [
+        2,
+        4
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "at": [
+        3,
+        1
+      ],
+      "text": "Buenos días, dormilón. Sabemos que anoche te dormiste tarde con el teléfono, pero la cocina no se limpia sola. Lava los platos y ordena tu cama antes de que volvamos. ¡Confiamos en ti, tú puedes! — Mamá y Papá",
+      "tasks": [
+        {
+          "text": "Lavar los platos",
+          "target": [
+            5,
+            1
+          ]
+        },
+        {
+          "text": "Ordenar la cama",
+          "target": [
+            5,
+            4
+          ]
+        }
+      ]
+    }
+  ]
+}
