@@ -1,4 +1,4 @@
-// ============================================================
+//   ============================================================
 //  Game_Player.pde — Jugador y sus interacciones con el nivel
 //  Convención de ángulo: 0 = arriba, sentido horario.
 //
