@@ -1,8 +1,16 @@
 {
   "id": "level01",
   "name": "Nivel 1",
-  "start": { "row": 2, "col": 2, "direction": "left" },
-  "clock": { "from": "8:00", "to": "10:00", "text": "Solo un video más…" },
+  "start": {
+    "row": 2,
+    "col": 2,
+    "direction": "left"
+  },
+  "clock": {
+    "from": "8:00",
+    "to": "10:00",
+    "text": "Solo un video más…"
+  },
   "map": [
     "WWWWWW",
     "W....W",
@@ -13,8 +21,20 @@
   ],
   "links": [],
   "tasks": [
-    { "text": "Ordenar la cama", "target": [4, 4] },
-    { "text": "Apagar el computador", "target": [2, 1] }
+    {
+      "text": "Ordenar la cama",
+      "target": [
+        4,
+        4
+      ]
+    },
+    {
+      "text": "Apagar el computador",
+      "target": [
+        2,
+        1
+      ]
+    }
   ],
   "notes": []
 }

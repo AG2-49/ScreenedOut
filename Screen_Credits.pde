@@ -12,6 +12,7 @@ class CreditsScreen extends Screen {
   };
 
   UIButton backBtn = new UIButton(20, WINDOW_H - 60, 120, 40, "Volver");
+  UIButton BehindBtn = new UIButton(WINDOW_W - 200, WINDOW_H - 60, 180, 40, "Detrás del Código");
 
   void draw() {
     pushStyle();
@@ -34,11 +35,13 @@ class CreditsScreen extends Screen {
     popStyle();
 
     backBtn.draw();
+    BehindBtn.draw();
     cursor(backBtn.hover() ? HAND : ARROW);
   }
 
   void mousePressed() {
     if (backBtn.clicked()) goTo(new HomeScreen());
+    else if (BehindBtn.clicked()) goTo(new BehindScreen());
   }
 }
 // ============================================================

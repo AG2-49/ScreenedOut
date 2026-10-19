@@ -2,33 +2,33 @@
   "id": "level03",
   "name": "Nivel 3",
   "start": {
-    "row": 1,
+    "row": 2,
     "col": 2,
     "direction": "left"
   },
   "clock": {
     "from": "8:00",
     "to": "12:00",
-    "text": "Solo reviso el feed un ratito…"
+    "text": "Solo termino esta partida…"
   },
   "map": [
-    "WWWWWW",
-    "WG.NBW",
-    "W.H..W",
-    "WTH..W",
-    "WWWDWW",
-    "WL.MNW",
-    "WWWWWW"
+    "WWWWWWWWWWWW",
+    "WN...WS.WS.W",
+    "WG...W.SW.AW",
+    "W....D..D..W",
+    "W...CWS.W.SW",
+    "WWWWWW.BWWWW",
+    "WWWWWWWWWWWW"
   ],
   "links": [
     {
       "from": [
-        1,
-        4
+        5,
+        7
       ],
       "to": [
-        4,
-        3
+        3,
+        8
       ]
     }
   ],
@@ -36,8 +36,15 @@
     {
       "text": "Apagar el computador",
       "target": [
-        1,
+        2,
         1
+      ]
+    },
+    {
+      "text": "Ordenar la cama",
+      "target": [
+        4,
+        4
       ]
     }
   ],
@@ -45,38 +52,19 @@
     {
       "at": [
         1,
-        3
+        1
       ],
-      "text": "Ya es casi mediodía y el cuarto sigue hecho un desastre. Saca la basura y dale de comer al gato: la despensa está cerrada, el interruptor del pasillo la abre. Menos pantalla y más vida, ¿sí? — Mamá",
+      "text": "Ya casi es mediodía y sigues pegado a ese computador. El gato lleva horas sin agua limpia: su plato está al fondo del pasillo y la puerta solo se abre con el botón del suelo. Y de paso, barre todo eso. Menos computador y más vida, ¿sí? — Papá",
       "tasks": [
         {
-          "text": "Sacar la basura",
-          "target": [
-            3,
-            1
-          ]
+          "text": "Barrer el pasillo",
+          "all": "S"
         },
         {
-          "text": "Dar de comer al gato",
+          "text": "Cambiar el agua del gato",
           "target": [
-            5,
-            3
-          ]
-        }
-      ]
-    },
-    {
-      "at": [
-        5,
-        4
-      ],
-      "text": "Si estás leyendo esto es que por fin saliste de la silla. ¡Bien! Ahora los platos que dejaste ayer. Te quiero, pero tu teléfono no se va a lavar los platos solo. — Papá",
-      "tasks": [
-        {
-          "text": "Lavar los platos",
-          "target": [
-            5,
-            1
+            2,
+            10
           ]
         }
       ]

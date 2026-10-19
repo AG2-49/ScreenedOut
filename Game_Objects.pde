@@ -4,13 +4,17 @@
 //  Para añadir un objeto nuevo:
 //    1) crea una clase que herede de GameObject,
 //    2) elige su carácter en Level.createObject(),
-//    3) (opcional) dale textura en Assets.
+//    3) dale textura en Assets (y sonido en Audio, si lo tiene).
 //  Enlaces: un objeto A ligado a B llama a B.onTrigger() cuando A se activa
 //  (ej.: un botón ligado a una puerta).
+//
+//  Regla común: una vez cumplido (done), la mayoría de objetos ya no responden
+//  (onInteract devuelve false), así que repetir «Interactuar» no repite el sonido.
 // ============================================================
 
 abstract class GameObject {
   int row, col;
+  char symbol = '?';           // carácter del mapa con el que se creó (lo usan las tareas "all")
   boolean done = false;        // ¿ya se interactuó con él con éxito? (lo usan las tareas)
   int controllers = 0;         // cuántos objetos lo controlan (ligados hacia él)
   ArrayList<GameObject> targets = new ArrayList<GameObject>();
@@ -24,13 +28,20 @@ abstract class GameObject {
   boolean blocksMovement() { return false; }
   PImage texture() { return null; }             // null = no dibuja nada (se ve el suelo)
   boolean onInteract(Level level) { return true; } // devuelve true si la interacción "cuenta"
+  void onTrigger(Level level) {}                // llamado por un objeto ligado hacia este
+  void onEnter(Level level, Player player) {}   // el jugador acaba de pisar su casilla
 
-  // ¿Merece la pena interactuar con él AHORA? Alimenta el destello sutil del mapa.
+  // ¿Merece la pena interactuar con él AHORA? Alimenta la caja de resalte del mapa.
   // Por defecto: tiene una tarea visible sin cumplir (bloqueado o ya hecho = no brilla).
   boolean interactive(Level level) {
     return level.hasPendingTask(this);
   }
-  void onTrigger(Level level) {}                // llamado por un objeto ligado hacia este
+
+  // ¿Se resalta al pasar el mouse por encima? Lo interactivo, y además todo lo que active
+  // a otros objetos (un botón ya pulsado sigue mostrando qué puerta controla).
+  boolean hoverable(Level level) {
+    return interactive(level) || !targets.isEmpty();
+  }
 
   // ----- Comunes -----
   // Devuelve true si la interacción "contó". Player.interact() usa ese valor para decidir
@@ -65,11 +76,12 @@ abstract class GameObject {
 // si está ligada a un botón, solo se abre/cierra desde el botón.
 class Door extends GameObject {
   boolean open = false;
+  boolean vertical = false;    // en una pared N-S se dibuja girada (lo fija Level al construir)
 
   Door(int row, int col) { super(row, col); }
 
   boolean blocksMovement() { return !open; }
-  PImage texture() { return open ? null : assets.door; }
+  PImage texture() { return open ? null : (vertical ? assets.doorVertical : assets.door); }
 
   // Brilla si se puede abrir con las manos: cerrada, sin nada que la controle y no bloqueada.
   boolean interactive(Level level) {
@@ -84,12 +96,13 @@ class Door extends GameObject {
       return false;
     }
     open = true;
-    println("Puerta abierta en fila " + row + ", columna " + col);
+    audio.play("DoorOpening");
     return true;
   }
 
   void onTrigger(Level level) {
     open = !open;
+    audio.play("DoorOpening");
   }
 }
 
@@ -107,16 +120,23 @@ class FloorButton extends GameObject {
 
   boolean onInteract(Level level) {
     pressed = !pressed;
+    audio.play("ButtonClick");
     fireTargets(level);
     return true;
   }
 }
 
-// Computadora (el escritorio del jugador). Por ahora solo se puede usar como objetivo de una tarea.
+// Computadora (el escritorio del jugador): se apaga al interactuar.
 class Computer extends GameObject {
   Computer(int row, int col) { super(row, col); }
 
   PImage texture() { return assets.computer; }
+
+  boolean onInteract(Level level) {
+    if (done) return false;
+    audio.play("ComputerOFF");
+    return true;
+  }
 }
 
 // Nota: al interactuar con ella se lee. Se abre a pantalla completa sobre el mapa
@@ -138,82 +158,119 @@ class Note extends GameObject {
     read = true;
     for (Task t : addedTasks) t.revealed = true;
     level.openNote = this;
+    audio.play("LetterPicking");
     return true;
   }
 }
 
-
-// Tareas domésticas sin sprite todavía: figuras de color sobre la casilla.
-abstract class Chore extends GameObject {
-  Chore(int row, int col) { super(row, col); }
-
-  void draw() {
-    pushMatrix();
-    pushStyle();
-    translate(col * TILE_SIZE, row * TILE_SIZE);
-    scale(TILE_SIZE / 60.0);
-    drawShape();
-    popStyle();
-    popMatrix();
-  }
-
-  abstract void drawShape();   // en una casilla de 60 x 60
-}
-
-class Bed extends Chore {
+// Cama: desordenada (BedMess) hasta que se ordena (Bed).
+class Bed extends GameObject {
   Bed(int row, int col) { super(row, col); }
 
-  void drawShape() {
-    stroke(60, 90, 160);
-    strokeWeight(2);
-    fill(110, 150, 220);
-    rect(8, 8, 44, 46, 4);
-    fill(255);
-    rect(13, 12, 34, 13, 4);
-    noFill();
-    line(10, 36, 50, 36);
+  PImage texture() { return done ? assets.bed : assets.bedMess; }
+
+  boolean onInteract(Level level) {
+    if (done) return false;
+    audio.play("BedDoing");
+    return true;
   }
 }
 
-class Trash extends Chore {
-  Trash(int row, int col) { super(row, col); }
+// Suciedad en el piso: se barre al interactuar (desaparece). Cada una elige al azar
+// una de las 4 texturas al crearse (ver Level.createObject).
+class Grime extends GameObject {
+  int variant;
 
-  void drawShape() {
-    stroke(70, 80, 55);
-    strokeWeight(2);
-    fill(125, 140, 95);
-    beginShape();
-    vertex(12, 44); vertex(17, 27); vertex(30, 17); vertex(44, 25); vertex(50, 43); vertex(40, 51); vertex(22, 51);
-    endShape(CLOSE);
-    fill(165, 120, 80);
-    triangle(28, 30, 40, 44, 24, 46);
+  Grime(int row, int col, int variant) {
+    super(row, col);
+    this.variant = variant;
+  }
+
+  PImage texture() { return done ? null : assets.grime[variant]; }
+
+  boolean onInteract(Level level) {
+    if (done) return false;
+    audio.play("Sweeping");
+    return true;
   }
 }
 
-class Dishes extends Chore {
-  Dishes(int row, int col) { super(row, col); }
+// Plato sucio: se recoge al interactuar (el jugador lo lleva; ver Level.dishesCarried).
+class DishDirty extends GameObject {
+  DishDirty(int row, int col) { super(row, col); }
 
-  void drawShape() {
-    stroke(90, 130, 160);
-    strokeWeight(2);
-    fill(205, 228, 238);
-    rect(7, 13, 46, 34, 5);
-    fill(255);
-    beginShape();
-    vertex(22, 22); vertex(30, 19); vertex(38, 22); vertex(41, 30); vertex(38, 38); vertex(30, 41); vertex(22, 38); vertex(19, 30);
-    endShape(CLOSE);
+  PImage texture() { return done ? null : assets.dishDirty; }
+
+  boolean onInteract(Level level) {
+    if (done) return false;
+    level.dishesCarried++;
+    audio.play("DishesPicking");
+    return true;
   }
 }
 
-class Feeder extends Chore {
-  Feeder(int row, int col) { super(row, col); }
+// Lavabo: lava TODOS los platos que lleve el jugador. Su tarea se cumple cuando ya no queda
+// ningún plato sin lavar en el nivel; con platos pendientes, lavar no la da por cumplida aún.
+class Sink extends GameObject {
+  Sink(int row, int col) { super(row, col); }
 
-  void drawShape() {
-    stroke(140, 80, 30);
-    strokeWeight(2);
-    fill(230, 150, 60);
-    quad(9, 24, 51, 24, 43, 46, 17, 46);
-    fill(120, 70, 40);
-    quad(15, 24, 45, 24, 43, 29, 17, 29);
+  PImage texture() { return assets.sink; }
+
+  // Solo brilla cuando hay algo que lavar.
+  boolean interactive(Level level) {
+    return level.dishesCarried > 0 && level.hasPendingTask(this);
+  }
+
+  boolean onInteract(Level level) {
+    if (done) return false;
+    if (level.dishesCarried == 0) {
+      level.say("“No tengo platos que lavar.”");
+      return false;
+    }
+    level.dishesWashed += level.dishesCarried;
+    level.dishesCarried = 0;
+    audio.play("DishesCleaning");
+    if (!level.allDishesWashed()) {
+      level.say("“Aún quedan platos por recoger.”");
+      return false;
+    }
+    return true;
+  }
+}
+
+// Plato de agua del gato: sucio (WaterDirty) hasta que se cambia (WaterClean).
+class CatBowl extends GameObject {
+  CatBowl(int row, int col) { super(row, col); }
+
+  PImage texture() { return done ? assets.waterClean : assets.waterDirty; }
+
+  boolean onInteract(Level level) {
+    if (done) return false;
+    audio.play("WaterPouring");
+    return true;
+  }
+}
+
+// Escalera: al PISARLA el jugador pasa a la escalera pareja del otro piso (se emparejan
+// al cargar el nivel: ver Level.linkStairs). '^' sube (piso anterior), 'v' baja (siguiente).
+class Stairs extends GameObject {
+  boolean up;
+  int floorIndex;
+  Stairs dest = null;
+
+  Stairs(int row, int col, boolean up) {
+    super(row, col);
+    this.up = up;
+  }
+
+  PImage texture() { return up ? assets.stairUp : assets.stairDown; }
+
+  void onEnter(Level level, Player player) {
+    if (dest == null) {
+      level.say("Esta escalera no lleva a ningún lado.");
+      return;
+    }
+    level.setFloor(dest.floorIndex);
+    player.teleportTo(level, dest.row, dest.col);
   }
 }

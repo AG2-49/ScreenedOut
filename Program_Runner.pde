@@ -81,6 +81,10 @@ class ProgramRunner {
         stop();
         return;
       }
+      // Para el sonido de pasos: si lo siguiente también es «Avanzar» el bucle debe aguantar
+      // hasta el próximo paso; si no, que dure solo lo que tarda en deslizarse este.
+      boolean walkContinues = currentStep + 1 < program.size() && program.get(currentStep + 1) == ACT_FORWARD;
+      player.walkHoldMs = walkContinues ? stepDelay + 120 : player.MOVE_MS;
       executeAction(program.get(currentStep), player, level);
       timer = 0;
     }

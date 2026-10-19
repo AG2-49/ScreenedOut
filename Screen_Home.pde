@@ -3,7 +3,7 @@
 // ============================================================
 
 class HomeScreen extends Screen {
-  UIButton playBtn, tutorialBtn, creditsBtn, exitBtn, BehindBtn;
+  UIButton playBtn, tutorialBtn, creditsBtn, exitBtn;
 
   HomeScreen() {
     float w = 240, h = 48, gap = 14;
@@ -11,7 +11,6 @@ class HomeScreen extends Screen {
     float y = 180;
 
     playBtn     = new UIButton(x, y, w, h, "Niveles");
-    BehindBtn     = new UIButton(x, y + (h + gap) * 4, w, h, "Detrás del Código");
     tutorialBtn = new UIButton(x, y + (h + gap), w, h, "Tutorial");
     creditsBtn  = new UIButton(x, y + (h + gap) * 2, w, h, "Créditos");
     exitBtn     = new UIButton(x, y + (h + gap) * 3, w, h, "Salir");
@@ -27,7 +26,6 @@ class HomeScreen extends Screen {
     popStyle();
 
     playBtn.draw();
-    BehindBtn.draw();
     tutorialBtn.draw();
     creditsBtn.draw();
     exitBtn.draw();
@@ -39,7 +37,6 @@ class HomeScreen extends Screen {
     if (playBtn.clicked()) goTo(new LevelSelectScreen());
     else if (tutorialBtn.clicked()) goTo(new TutorialSelectScreen());
     else if (creditsBtn.clicked()) goTo(new CreditsScreen());
-    else if (BehindBtn.clicked()) goTo(new BehindScreen());
     else if (exitBtn.clicked()) exit();
   }
 }

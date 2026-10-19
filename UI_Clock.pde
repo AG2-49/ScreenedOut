@@ -1,8 +1,11 @@
 // ============================================================
 //  UI_Clock.pde — Reloj digital de introducción
 //  Al empezar un nivel con "clock" en su JSON, esta vista REEMPLAZA al mapa: marca la hora
-//  de inicio, avanza rápido hasta la hora final (con suavizado), se queda un instante
-//  y se cierra sola. Un click, Enter o Espacio la saltan. El juego espera mientras se ve.
+//  de inicio, la hace pasar a toda velocidad hasta la hora final y se queda un instante
+//  antes de cerrarse sola. La duración es FIJA (CLOCK_ADVANCE_MS) sin importar cuántas
+//  horas haya entre ambas, y el movimiento es in-out: arranca lento, acelera en la mitad
+//  y frena al llegar. Así 2 horas y 13 horas tardan lo mismo, pero estas últimas se sienten
+//  mucho más rápidas. Un click, Enter o Espacio la saltan. El juego espera mientras se ve.
 //  Los dígitos se dibujan como display de siete segmentos (no dependen de ninguna fuente).
 // ============================================================
 
@@ -12,7 +15,8 @@ class ClockIntro {
 
   boolean finished;
   int startMs = -1;          // se fija en el primer update (no cuenta el tiempo de carga)
-  int advanceMs;             // duración del avance rápido
+  final int CLOCK_ADVANCE_MS = 3000;   // duración del avance (con la pausa final ≈ lo que dura ClockTick)
+  int advanceMs = CLOCK_ADVANCE_MS;
   int holdMs = 900;          // pausa mostrando la hora final
 
   // Segmentos por dígito: bits a=1 (arriba), b=2 (arriba der.), c=4 (abajo der.),
@@ -30,25 +34,33 @@ class ClockIntro {
     this.area = area;
     this.level = level;
     finished = !level.hasClock;
-    // Unos 18 ms por minuto simulado, entre 1,8 y 4 s: 2 horas ≈ 2,2 s; medio día no se eterniza
-    advanceMs = (int) constrain((level.clockTo - level.clockFrom) * 18, 1800, 4000);
   }
 
   boolean isActive() { return !finished; }
 
-  void skip() { finished = true; }
+  void skip() { finish(); }
+
+  void finish() {
+    if (finished) return;
+    finished = true;
+    audio.stop("ClockTick");
+  }
 
   // Se llama cada frame.
   void update() {
     if (finished) return;
-    if (startMs < 0) startMs = millis();
-    if (millis() - startMs >= advanceMs + holdMs) finished = true;
+    if (startMs < 0) {
+      startMs = millis();
+      audio.play("ClockTick");   // el tictac suena mientras el reloj corre
+    }
+    if (millis() - startMs >= advanceMs + holdMs) finish();
   }
 
   // Minutos (desde las 0:00) que marca el reloj ahora mismo.
   int shownMinutes() {
     float t = constrain((millis() - startMs) / (float) advanceMs, 0, 1);
-    float e = t * t * (3 - 2 * t);
+    // In-out cúbico: lento al principio, muy rápido en medio, lento al final
+    float e = t < 0.5 ? 4 * t * t * t : 1 - pow(-2 * t + 2, 3) / 2;
     return (int) (level.clockFrom + (level.clockTo - level.clockFrom) * e);
   }
 

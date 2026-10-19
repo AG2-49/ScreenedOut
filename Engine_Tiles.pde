@@ -8,15 +8,18 @@
 //    1) suelo en TODAS las casillas
 //    2) terreno encima: paredes (sprites sin fondo) y huecos (opacos, tapan el suelo)
 //    3) objetos del nivel (puertas, botones, meta...)
+//    4) cajas de resalte: la del objeto en rango / bajo el mouse (hintColor) y, en otro color
+//       (linkColor), la de los objetos que ese objeto activa (la puerta de un botón)
 // ============================================================
 
 class MapRenderer {
   // ¿Los bordes del mapa cuentan como "vecino"? (false = el borde se ve como vacío)
   boolean edgeCountsAsNeighbor = false;
 
-  // Casilla a resaltar (la fija la pantalla cada frame)
-  GameObject hintObj = null;
-  float hintAlpha = 0;
+  // Objetos a resaltar (los fija la pantalla cada frame)
+  GameObject hintObj = null;     // el que está en rango de interacción del jugador
+  float hintAlpha = 0;           // su opacidad (se desvanece un momento al salir de rango)
+  GameObject hoverObj = null;    // el que está bajo el mouse
 
   // Se espera que la cámara ya haya aplicado su translate (Camera.begin()).
   void draw(Level level, Camera cam) {
@@ -38,13 +41,23 @@ class MapRenderer {
       obj.draw();
     }
 
-    if (hintObj != null && hintAlpha > 0) drawHint(hintObj);
+    // Cajas de resalte. Si el objeto en rango es el mismo que el del mouse, se dibuja una sola vez.
+    if (hoverObj != null) drawHighlight(hoverObj, 1);
+    if (hintObj != null && hintAlpha > 0 && hintObj != hoverObj) drawHighlight(hintObj, hintAlpha);
   }
 
-  void drawHint(GameObject obj) {
+  // Caja del objeto (hintColor) y, en otro color (linkColor), una por cada objeto que él activa.
+  void drawHighlight(GameObject obj, float alpha) {
+    drawBox(obj, hintColor, alpha);
+    for (GameObject target : obj.targets) {
+      drawBox(target, linkColor, alpha);
+    }
+  }
+
+  void drawBox(GameObject obj, color c, float alpha) {
     pushStyle();
     noFill();
-    stroke(red(hintColor), green(hintColor), blue(hintColor), 255 * hintAlpha);
+    stroke(red(c), green(c), blue(c), 255 * alpha);
     strokeWeight(4);
     rect(obj.col * TILE_SIZE + 3, obj.row * TILE_SIZE + 3, TILE_SIZE - 6, TILE_SIZE - 6, 8);
     popStyle();

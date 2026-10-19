@@ -20,12 +20,27 @@ class Player {
   int animStart = 0, animMs = 1;
   boolean animating = false;
 
+  // Cuánto debe seguir sonando el bucle de pasos tras un paso si no llega otro (ms).
+  // El ProgramRunner lo ajusta antes de cada acción: más largo si el siguiente paso también es
+  // «Avanzar» (el bucle no se corta entre casillas) y justo lo que dura el paso si es el último.
+  int walkHoldMs = MOVE_MS + 150;
+
   void reset(Level level) {
+    level.setFloor(level.startFloor);
     row = level.startRow;
     col = level.startCol;
     looking = level.startLooking;
     fell = false;
+    level.markVisited(row, col);
     snapVisual();   // al reiniciar no se anima: se ve la casilla de salida tal cual
+  }
+
+  // Salta a otra casilla del piso actual sin animar (lo usan las escaleras).
+  void teleportTo(Level level, int newRow, int newCol) {
+    row = newRow;
+    col = newCol;
+    level.markVisited(row, col);
+    snapVisual();
   }
 
   // Coloca lo dibujado exactamente sobre el estado lógico, sin animación.
@@ -101,6 +116,26 @@ class Player {
     popMatrix();
   }
 
+  // Plato(s) en las manos: un platito junto al jugador (no gira con él) y el número si son varios.
+  void drawCarrying(int count) {
+    if (count <= 0) return;
+    pushStyle();
+    float s = TILE_SIZE * 0.5;
+    float x = px() + TILE_SIZE * 0.12;
+    float y = py() - TILE_SIZE * 0.62;
+    image(assets.dishDirty, x, y, s, s);
+    if (count > 1) {
+      fill(30, 50, 100);
+      noStroke();
+      ellipse(x + s, y + 4, 18, 18);
+      fill(255);
+      textAlign(CENTER, CENTER);
+      textSize(12);
+      text(count, x + s, y + 3);
+    }
+    popStyle();
+  }
+
   // ----- Orientación -----
   void setLookingFromDelta(int dx, int dy) {
     if (dx == 0 && dy == 0) return;
@@ -130,9 +165,13 @@ class Player {
 
     setLookingFromDelta(dx, dy);
 
+    int hold = walkHoldMs;                // se consume: el siguiente paso vuelve al valor por defecto
+    walkHoldMs = MOVE_MS + 150;
+
     // Pared: choca (solo gira hacia ella)
     if (level.terrainAt(nextRow, nextCol) == 'W') {
       startAnim(TURN_MS);
+      audio.stopWalk();
       return false;
     }
 
@@ -140,18 +179,26 @@ class Player {
     GameObject obj = level.objectAt(nextRow, nextCol);
     if (obj != null && obj.blocksMovement()) {
       startAnim(TURN_MS);
+      audio.stopWalk();
       return false;
     }
 
     row = nextRow;
     col = nextCol;
     startAnim(MOVE_MS);
+    level.markVisited(row, col);
+    audio.walkStep(hold);
 
     // Hueco: cae
     if (level.terrainAt(row, col) == 'H') {
       fell = true;
       onFall();
+      return true;
     }
+
+    // Lo que haya en la casilla (escaleras...) reacciona al pisarla
+    GameObject here = level.objectAt(row, col);
+    if (here != null) here.onEnter(level, this);
     return true;
   }
 
@@ -164,6 +211,7 @@ class Player {
   // dir: 1 = horario (derecha), -1 = antihorario (izquierda)
   void turn(int dir) {
     if (fell) return;
+    audio.stopWalk();
     looking += dir * HALF_PI;
     startAnim(TURN_MS);
   }
@@ -189,6 +237,7 @@ class Player {
   }
 
   void interact(Level level) {
+    audio.stopWalk();
     if (fell) return;
 
     GameObject target = interactTarget(level);
@@ -205,6 +254,7 @@ class Player {
   }
 
   void onFall() {
+    audio.stopWalk();
     println("¡Caíste en un hueco!");
   }
 }

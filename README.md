@@ -122,3 +122,37 @@ Ventana de 1160×500: tareas (260 px) | mapa (410 px) | programación (410 px). 
 ## Pendiente / ideas
 
 - `save.json` se escribe en `data/`; si exportas la app, verifica que esa ruta sea escribible.
+
+---
+
+## Audio (Engine_Audio.pde)
+
+Requiere la librería **Minim** (Sketch ▸ Importar librería ▸ Gestionar librerías ▸ «Minim»).
+Todo pasa por la variable global `audio`: `play("Nombre")`, `stop("Nombre")`, `walkStep(ms)`,
+`stopWalk()`, `silence()`. Las ganancias por sonido (en dB) están en `SFX_GAIN`.
+Tecla **M**: silenciar / activar.
+
+**Pasos:** `Walk.mp3` suena en bucle mientras el jugador siga caminando. Cada paso exitoso renueva
+un plazo (`walkStep`); girar, interactuar, chocar o caer lo cortan con un fundido (`stopWalk`);
+si nadie lo renueva, se apaga solo. El `ProgramRunner` avisa si la siguiente acción también es
+«Avanzar» para que el bucle no se corte entre casillas.
+
+## Mapas
+
+Caracteres: `.` suelo · `W` pared · `H` hueco · `D` puerta · `G` computadora · `B` botón · `N` nota ·
+`C` cama · `S` suciedad · `P` plato sucio · `L` lavabo · `A` agua del gato · `^` escalera que sube · `v` escalera que baja.
+
+**Pisos:** en lugar de `"map"` se usa `"floors": [{"name": "Piso 3", "map": [...]}, ...]` (de arriba hacia abajo).
+La k-ésima `v` de un piso se empareja con la k-ésima `^` del piso siguiente; basta con pisar la escalera.
+Posiciones en `links`, `notes` y tareas: `[fila, col]` (piso 0) o `[piso, fila, col]`. `start` admite `"floor"`.
+
+**Tareas:** `{"target": [f,c]}` · `{"targets": [[f,c],...]}` · `{"all": "S"}` (todas las S; `"floor": n` las limita a un piso) ·
+`{"reach": [f,c]}` (se cumple al pisar esa casilla). Con varios objetivos la lista muestra «(2/5)».
+
+**Platos:** al recogerlos el jugador los lleva (se ve el plato junto a él); el lavabo los lava todos de una vez y
+su tarea se cumple cuando ya no queda ninguno sin lavar.
+
+## Resalte de objetos
+
+Caja ámbar (`hintColor`) sobre el objeto en rango o bajo el mouse; en violeta (`linkColor`) los objetos
+que ese objeto activa (la puerta de un botón). Para ligar un objeto a otro: `links` en el JSON.

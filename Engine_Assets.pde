@@ -11,7 +11,9 @@ final int S_BIT = 4;
 final int W_BIT = 8;
 
 class Assets {
-  PImage floor, door, computer, note, buttonPressed, buttonUnpressed;
+  PImage floor, door, doorVertical, computer, note, buttonPressed, buttonUnpressed;
+  PImage bed, bedMess, dishDirty, sink, stairUp, stairDown, waterClean, waterDirty;
+  PImage[] grime = new PImage[4];        // 4 variantes; cada suciedad elige una al azar
   PImage[] wallByMask = new PImage[16];   // indexada por máscara de vecinos
   PImage[] holeByMask = new PImage[16];
 
@@ -23,11 +25,27 @@ class Assets {
     String t = "Assets/tiles/";
 
     floor           = loadTile(t + "Floor.png");
-    door            = loadTile(t + "door.png");
-    computer        = loadTile(t + "computer.png");   // la meta usa el asset de computadora
-    note            = loadTile(t + "note.png");       // reservada para uso futuro
-    buttonPressed   = loadTile(t + "pressed_button.png");
-    buttonUnpressed = loadTile(t + "unpressed_button.png");
+    door            = loadTile(t + "Door.png");
+    computer        = loadTile(t + "Computer.png");   // la meta usa el asset de computadora
+    note            = loadTile(t + "Note.png");       // reservada para uso futuro
+    buttonPressed   = loadTile(t + "ButtonPressed.png");
+    buttonUnpressed = loadTile(t + "ButtonUnpressed.png");
+
+    // Door.png es una barra horizontal (para paredes E-W): la versión girada sirve para paredes N-S
+    doorVertical    = scaleNearest(rotateCW(loadImage(t + "Door.png")), TILE_SIZE);
+
+    // ----- Tareas domésticas -----
+    bed         = loadTile(t + "Bed.png");          // cama ordenada
+    bedMess     = loadTile(t + "BedMess.png");      // cama desordenada
+    dishDirty   = loadTile(t + "DishDirty.png");
+    sink        = loadTile(t + "Sink.png");
+    stairUp     = loadTile(t + "StairUp.png");
+    stairDown   = loadTile(t + "StairDown.png");
+    waterClean  = loadTile(t + "WaterClean.png");
+    waterDirty  = loadTile(t + "WaterDirty.png");
+    for (int i = 0; i < grime.length; i++) {
+      grime[i] = loadTile(t + "Grime" + (i + 1) + ".png");
+    }
 
     // ----- Paredes: sprites SIN fondo (solo la banda gris), se dibujan sobre el suelo -----
     // Cada uno con los lados "abiertos" (conectados) que tiene la imagen base:
@@ -45,12 +63,12 @@ class Assets {
 
     // ----- Huecos -----
     //   hole1: sin vecinos   hole2: N   hole3: N+S   hole4: N+E   hole5: N+E+S   hole6: 4 vecinos
-    registerRotations(holeByMask, loadImage(t + "hole1.png"), 0);
-    registerRotations(holeByMask, loadImage(t + "hole2.png"), N_BIT);
-    registerRotations(holeByMask, loadImage(t + "hole3.png"), N_BIT | S_BIT);
-    registerRotations(holeByMask, loadImage(t + "hole4.png"), N_BIT | E_BIT);
-    registerRotations(holeByMask, loadImage(t + "hole5.png"), N_BIT | E_BIT | S_BIT);
-    registerRotations(holeByMask, loadImage(t + "hole6.png"), N_BIT | E_BIT | S_BIT | W_BIT);
+    registerRotations(holeByMask, loadImage(t + "Hole1.png"), 0);
+    registerRotations(holeByMask, loadImage(t + "Hole2.png"), N_BIT);
+    registerRotations(holeByMask, loadImage(t + "Hole3.png"), N_BIT | S_BIT);
+    registerRotations(holeByMask, loadImage(t + "Hole4.png"), N_BIT | E_BIT);
+    registerRotations(holeByMask, loadImage(t + "Hole5.png"), N_BIT | E_BIT | S_BIT);
+    registerRotations(holeByMask, loadImage(t + "Hole6.png"), N_BIT | E_BIT | S_BIT | W_BIT);
 
     // ----- Íconos de la interfaz -----
     String[] iconFiles = {"step.png", "counterclockwise.png", "clockwise.png", "action.png"};

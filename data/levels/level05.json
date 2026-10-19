@@ -1,0 +1,145 @@
+{
+  "id": "level05",
+  "name": "Nivel 5",
+  "start": {
+    "floor": 0,
+    "row": 2,
+    "col": 2,
+    "direction": "left"
+  },
+  "clock": {
+    "from": "8:00",
+    "to": "21:00",
+    "text": "Ya casi termino…"
+  },
+  "floors": [
+    {
+      "name": "Piso 3",
+      "map": [
+        "WWWWWWWWWWWW",
+        "WN...WS.WS.W",
+        "WG...W.SW.AW",
+        "W..P.D..D..W",
+        "W...CWS.W.SW",
+        "WWWWWWvBWWWW",
+        "WWWWWWWWWWWW"
+      ]
+    },
+    {
+      "name": "Piso 2",
+      "map": [
+        "WWWWWWWW",
+        "W.L...vW",
+        "W...N..W",
+        "W.....PW",
+        "W.....^W",
+        "WWWWWWWW"
+      ]
+    },
+    {
+      "name": "Piso 1",
+      "map": [
+        "WWWWWWWW",
+        "W....N^W",
+        "W.S....W",
+        "WP.WS..W",
+        "W......W",
+        "WWWWWWWW"
+      ]
+    }
+  ],
+  "links": [
+    {
+      "from": [
+        0,
+        5,
+        7
+      ],
+      "to": [
+        0,
+        3,
+        8
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "text": "Apagar el computador",
+      "target": [
+        0,
+        2,
+        1
+      ]
+    },
+    {
+      "text": "Ordenar la cama",
+      "target": [
+        0,
+        4,
+        4
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "at": [
+        0,
+        1,
+        1
+      ],
+      "text": "Ya es de noche y la casa entera es un desastre. Recoge todos los platos, barre el pasillo y cambia el agua del gato. Hablaremos cuando volvamos. — Mamá",
+      "tasks": [
+        {
+          "text": "Recoger los platos",
+          "all": "P"
+        },
+        {
+          "text": "Barrer el pasillo",
+          "all": "S",
+          "floor": 0
+        },
+        {
+          "text": "Cambiar el agua del gato",
+          "target": [
+            0,
+            2,
+            10
+          ]
+        }
+      ]
+    },
+    {
+      "at": [
+        1,
+        2,
+        4
+      ],
+      "text": "Mira por la ventana: hoy hubo sol y no lo viste. Lava los platos y baja a ver cómo está la sala. — Papá",
+      "tasks": [
+        {
+          "text": "Lavar los platos",
+          "target": [
+            1,
+            1,
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "at": [
+        2,
+        1,
+        5
+      ],
+      "text": "Esto de abajo lo veníamos aguantando, pero ya es demasiado. Barre la sala. Y cuando termines, ven a cenar con nosotros: te estamos esperando. Te queremos. — Mamá y Papá",
+      "tasks": [
+        {
+          "text": "Barrer la sala",
+          "all": "S",
+          "floor": 2
+        }
+      ]
+    }
+  ]
+}

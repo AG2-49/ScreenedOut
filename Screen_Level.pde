@@ -24,10 +24,12 @@ class LevelScreen extends Screen {
   boolean progressSaved = false;
 
   boolean attempted = false;       // ya se pulsó «Correr» al menos una vez
-  GameObject hintObj = null;
+  GameObject hintObj = null;       // objeto en rango de interacción (caja ámbar)
   int hintUntil = 0;
   boolean hintLive = false;
   final int HINT_LINGER_MS = 600;
+  GameObject hoverObj = null;      // objeto bajo el mouse (la misma caja)
+  int shownFloor = 0;              // piso cuyo tamaño tiene configurada la cámara
 
   LevelScreen(int levelIndex) {
     this(levels, levelIndex);
@@ -61,13 +63,22 @@ class LevelScreen extends Screen {
 
   // Restaura jugador, nivel y cámara a su estado inicial.
   void resetLevel() {
+    audio.silence();                 // «Correr» de nuevo: nada del intento anterior debe seguir sonando
     level.reset();
     player.reset(level);
-    camera.reset();
+    fitCameraToFloor();
     hintObj = null;
+    hoverObj = null;
     camera.follow(player.px(), player.py());
     lastRow = player.row;
     lastCol = player.col;
+  }
+
+  // Ajusta la cámara al tamaño del piso actual (cada piso puede medir distinto).
+  void fitCameraToFloor() {
+    camera.setContentSize(level.cols * TILE_SIZE, level.rows * TILE_SIZE);
+    camera.reset();
+    shownFloor = level.floor;
   }
 
   // Lo llama el panel al pulsar "Correr": cada intento empieza limpio.
@@ -106,7 +117,17 @@ class LevelScreen extends Screen {
     player.update();
     panel.update();
     level.updateCompletion();
+
+    // Al usar unas escaleras cambia el piso: otro mapa, otra cámara
+    if (level.floor != shownFloor) {
+      fitCameraToFloor();
+      hintObj = null;
+      hoverObj = null;
+      camera.follow(player.px(), player.py());
+    }
+
     updateHint();
+    updateHover();
 
     // La cámara sigue al jugador al cambiar de casilla y durante toda la animación del paso
     // (así acompaña el deslizamiento). En reposo no tira de ella: se puede arrastrar el mapa.
@@ -136,6 +157,20 @@ class LevelScreen extends Screen {
     }
   }
 
+  // Objeto bajo el mouse que merece resaltarse (solo con el mapa a la vista y sin arrastrarlo).
+  // A diferencia de la caja de «en rango», esta no espera al primer «Correr»: pasar el mouse
+  // es una acción del jugador, no una pista automática.
+  void updateHover() {
+    hoverObj = null;
+    if (clock.isActive() || noteViewer.isOpen() || camera.dragging) return;
+    if (!mapArea.containsMouse()) return;
+
+    int[] rc = camera.tileAt(mouseX, mouseY);
+    if (!level.inBounds(rc[0], rc[1])) return;
+    GameObject o = level.objectAt(rc[0], rc[1]);
+    if (o != null && o.hoverable(level)) hoverObj = o;
+  }
+
   float hintAlpha() {
     if (hintObj == null) return 0;
     if (hintLive) return 1;
@@ -145,6 +180,7 @@ class LevelScreen extends Screen {
   void draw() {
     renderer.hintObj = hintObj;
     renderer.hintAlpha = hintAlpha();
+    renderer.hoverObj = hoverObj;
 
     if (clock.isActive()) {
       // Al empezar el nivel, el reloj ocupa el lugar del mapa
@@ -156,7 +192,9 @@ class LevelScreen extends Screen {
       camera.begin();
       renderer.draw(level, camera);
       player.draw();
+      player.drawCarrying(level.dishesCarried);
       camera.end();
+      drawFloorTag();
       drawBanner();
       if (showNext()) nextBtn.draw();
     }
@@ -182,6 +220,22 @@ class LevelScreen extends Screen {
     if (c == ARROW && panel.dragging) c = MOVE;
     else if (c == ARROW && panel.canDragHere()) c = HAND;
     cursor(c);
+  }
+
+  // Etiqueta con el nombre del piso, arriba a la izquierda del mapa (solo si el nivel tiene varios).
+  void drawFloorTag() {
+    if (!level.hasManyFloors() || level.floorName().length() == 0) return;
+    pushStyle();
+    textSize(13);
+    String label = level.floorName();
+    float w = textWidth(label) + 20, h = 24;
+    fill(0, 170);
+    noStroke();
+    rect(mapArea.x + 8, mapArea.y + 8, w, h, 6);
+    fill(255);
+    textAlign(LEFT, CENTER);
+    text(label, mapArea.x + 18, mapArea.y + 8 + h / 2.0 - 1);
+    popStyle();
   }
 
   // Mensaje sobre el mapa: victoria, caída o aviso del último objeto usado.
