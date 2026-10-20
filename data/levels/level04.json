@@ -2,10 +2,7 @@
   "id": "level04",
   "name": "Nivel 4",
   "start": {
-    "floor": 0,
-    "row": 2,
-    "col": 2,
-    "direction": "left"
+    "floor": 0
   },
   "clock": {
     "from": "8:00",
@@ -29,12 +26,38 @@
       "name": "Piso 2",
       "map": [
         "WWWWWWWW",
-        "W.L....W",
+        "W.L...^W",
         "W...N..W",
         "W.....PW",
-        "W.....^W",
+        "W......W",
         "WWWWWWWW"
       ]
+    }
+  ],
+  "orientation": [
+    {
+      "at": [
+        0,
+        2,
+        1
+      ],
+      "direction": "right"
+    },
+    {
+      "at": [
+        0,
+        5,
+        6
+      ],
+      "direction": "up"
+    },
+    {
+      "at": [
+        1,
+        1,
+        6
+      ],
+      "direction": "down"
     }
   ],
   "links": [
@@ -76,7 +99,7 @@
         1,
         1
       ],
-      "text": "Son las tres de la tarde y sigues frente al computador. Recoge los platos que dejaste por la casa, barre el pasillo y cambia el agua del gato. Los platos se lavan en el lavabo de abajo. — Mamá",
+      "text": "Salimos por todo el día. Recoge los platos que dejaste por la casa, barre el pasillo y cambia el agua del gato. Los platos se lavan en el lavabo de abajo. — Mamá",
       "tasks": [
         {
           "text": "Recoger los platos",

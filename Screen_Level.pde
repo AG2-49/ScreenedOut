@@ -29,7 +29,9 @@ class LevelScreen extends Screen {
   boolean hintLive = false;
   final int HINT_LINGER_MS = 600;
   GameObject hoverObj = null;      // objeto bajo el mouse (la misma caja)
-  int shownFloor = 0;              // piso cuyo tamaño tiene configurada la cámara
+  int viewFloor = 0;               // piso que SE VE (el del personaje, o el que el jugador eligió mirar)
+  int playerFloorSeen = 0;         // último piso del personaje que ya se atendió (detecta escaleras)
+  FloorSelector floorSelector;
 
   LevelScreen(int levelIndex) {
     this(levels, levelIndex);
@@ -48,6 +50,7 @@ class LevelScreen extends Screen {
     taskPanel = new TaskPanel(taskArea, level);
     noteViewer = new NoteViewer(mapArea, level);
     clock = new ClockIntro(mapArea, level);
+    floorSelector = new FloorSelector(mapArea);
 
     // Botón de salida al menú principal, arriba a la derecha del panel de programación
     menuBtn = new UIButton(progArea.x + progArea.w - 15 - 90, progArea.y + 15, 90, 32, "Menú");
@@ -66,20 +69,26 @@ class LevelScreen extends Screen {
     audio.silence();                 // «Correr» de nuevo: nada del intento anterior debe seguir sonando
     level.reset();
     player.reset(level);
-    fitCameraToFloor();
-    hintObj = null;
-    hoverObj = null;
-    camera.follow(player.px(), player.py());
+    floorSelector.open = false;
+    playerFloorSeen = level.floor;
+    setViewFloor(level.floor);
     lastRow = player.row;
     lastCol = player.col;
   }
 
-  // Ajusta la cámara al tamaño del piso actual (cada piso puede medir distinto).
-  void fitCameraToFloor() {
-    camera.setContentSize(level.cols * TILE_SIZE, level.rows * TILE_SIZE);
+  // Cambia el piso que se ve: ajusta la cámara a su tamaño (cada piso puede medir distinto).
+  // Si es el del personaje, la cámara lo sigue; si no, se queda en la esquina para curiosear.
+  void setViewFloor(int index) {
+    viewFloor = constrain(index, 0, level.floors.size() - 1);
+    Floor f = level.floors.get(viewFloor);
+    camera.setContentSize(f.cols * TILE_SIZE, f.rows * TILE_SIZE);
     camera.reset();
-    shownFloor = level.floor;
+    hintObj = null;
+    hoverObj = null;
+    if (viewFloor == level.floor) camera.follow(player.px(), player.py());
   }
+
+  boolean viewingPlayerFloor() { return viewFloor == level.floor; }
 
   // Lo llama el panel al pulsar "Correr": cada intento empieza limpio.
   void startRun() {
@@ -118,12 +127,10 @@ class LevelScreen extends Screen {
     panel.update();
     level.updateCompletion();
 
-    // Al usar unas escaleras cambia el piso: otro mapa, otra cámara
-    if (level.floor != shownFloor) {
-      fitCameraToFloor();
-      hintObj = null;
-      hoverObj = null;
-      camera.follow(player.px(), player.py());
+    // Al usar unas escaleras cambia el piso del personaje: la vista lo acompaña
+    if (level.floor != playerFloorSeen) {
+      playerFloorSeen = level.floor;
+      setViewFloor(level.floor);
     }
 
     updateHint();
@@ -134,7 +141,7 @@ class LevelScreen extends Screen {
     boolean changedCell = player.row != lastRow || player.col != lastCol;
     boolean animNow = player.isAnimating();
     if (changedCell || animNow || wasAnimating) {   // wasAnimating: un último ajuste al terminar
-      camera.follow(player.px(), player.py());
+      if (viewingPlayerFloor()) camera.follow(player.px(), player.py());
       lastRow = player.row;
       lastCol = player.col;
     }
@@ -163,12 +170,17 @@ class LevelScreen extends Screen {
   void updateHover() {
     hoverObj = null;
     if (clock.isActive() || noteViewer.isOpen() || camera.dragging) return;
-    if (!mapArea.containsMouse()) return;
+    if (!mapArea.containsMouse() || floorSelector.over(level)) return;
 
+    // Se mira el piso que se está viendo, no necesariamente el del personaje
+    int realFloor = level.floor;
+    level.setFloor(viewFloor);
     int[] rc = camera.tileAt(mouseX, mouseY);
-    if (!level.inBounds(rc[0], rc[1])) return;
-    GameObject o = level.objectAt(rc[0], rc[1]);
-    if (o != null && o.hoverable(level)) hoverObj = o;
+    if (level.inBounds(rc[0], rc[1])) {
+      GameObject o = level.objectAt(rc[0], rc[1]);
+      if (o != null && o.hoverable(level)) hoverObj = o;
+    }
+    level.setFloor(realFloor);
   }
 
   float hintAlpha() {
@@ -178,7 +190,8 @@ class LevelScreen extends Screen {
   }
 
   void draw() {
-    renderer.hintObj = hintObj;
+    // La caja de «en rango» pertenece al piso del personaje: no se dibuja al mirar otro
+    renderer.hintObj = viewingPlayerFloor() ? hintObj : null;
     renderer.hintAlpha = hintAlpha();
     renderer.hoverObj = hoverObj;
 
@@ -190,11 +203,23 @@ class LevelScreen extends Screen {
       noteViewer.draw();
     } else {
       camera.begin();
+      int realFloor = level.floor;
+      level.setFloor(viewFloor);            // el renderer dibuja el piso que se está viendo
       renderer.draw(level, camera);
-      player.draw();
-      player.drawCarrying(level.dishesCarried);
+      level.setFloor(realFloor);
+      if (viewingPlayerFloor()) {
+        player.draw();
+        player.drawCarrying(level.dishesCarried);
+      }
       camera.end();
-      drawFloorTag();
+      if (!viewingPlayerFloor()) {          // velo suave: «esto es otro piso, el personaje no está aquí»
+        pushStyle();
+        noStroke();
+        fill(20, 30, 70, 40);
+        rect(mapArea.x, mapArea.y, mapArea.w, mapArea.h);
+        popStyle();
+      }
+      floorSelector.draw(level, viewFloor);
       drawBanner();
       if (showNext()) nextBtn.draw();
     }
@@ -211,6 +236,8 @@ class LevelScreen extends Screen {
     int c = ARROW;
     if (showNext() && nextBtn.hover()) {
       c = HAND;
+    } else if (!clock.isActive() && !noteViewer.isOpen() && floorSelector.over(level)) {
+      c = HAND;
     } else if (noteViewer.isOpen()) {
       if (noteViewer.closeBtn.hover()) c = HAND;
       else if (noteViewer.canDragHere()) c = noteViewer.dragging ? MOVE : HAND;
@@ -220,22 +247,6 @@ class LevelScreen extends Screen {
     if (c == ARROW && panel.dragging) c = MOVE;
     else if (c == ARROW && panel.canDragHere()) c = HAND;
     cursor(c);
-  }
-
-  // Etiqueta con el nombre del piso, arriba a la izquierda del mapa (solo si el nivel tiene varios).
-  void drawFloorTag() {
-    if (!level.hasManyFloors() || level.floorName().length() == 0) return;
-    pushStyle();
-    textSize(13);
-    String label = level.floorName();
-    float w = textWidth(label) + 20, h = 24;
-    fill(0, 170);
-    noStroke();
-    rect(mapArea.x + 8, mapArea.y + 8, w, h, 6);
-    fill(255);
-    textAlign(LEFT, CENTER);
-    text(label, mapArea.x + 18, mapArea.y + 8 + h / 2.0 - 1);
-    popStyle();
   }
 
   // Mensaje sobre el mapa: victoria, caída o aviso del último objeto usado.
@@ -298,6 +309,11 @@ class LevelScreen extends Screen {
     }
     if (showNext() && nextBtn.clicked()) {
       goNext();
+      return;
+    }
+    int picked = floorSelector.mousePressed(level, viewFloor);   // lista desplegable de pisos
+    if (picked >= 0) {
+      if (picked != viewFloor) setViewFloor(picked);
       return;
     }
     if (camera.mousePressed()) return;   // click sobre el mapa = empieza arrastre

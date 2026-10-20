@@ -1,11 +1,7 @@
 {
   "id": "level02",
   "name": "Nivel 2",
-  "start": {
-    "row": 2,
-    "col": 2,
-    "direction": "left"
-  },
+  "start": {},
   "clock": {
     "from": "8:00",
     "to": "11:00",
@@ -18,6 +14,15 @@
     "W....D..W",
     "W...CWS.W",
     "WWWWWWWWW"
+  ],
+  "orientation": [
+    {
+      "at": [
+        2,
+        1
+      ],
+      "direction": "right"
+    }
   ],
   "links": [],
   "tasks": [
@@ -42,7 +47,7 @@
         1,
         1
       ],
-      "text": "Buenos días, dormilón. Ya van varias horas frente a ese computador y el pasillo está lleno de tierra. Sal de tu cuarto y barre un poco, ¿sí? Volvemos en la tarde. — Mamá",
+      "text": "Buenos días, dormilón. Salimos a hacer unas compras. El pasillo está lleno de tierra: sal de tu cuarto y barre un poco, ¿sí? Volvemos en la tarde. — Mamá",
       "tasks": [
         {
           "text": "Salir de tu habitación",

@@ -127,10 +127,15 @@ class FloorButton extends GameObject {
 }
 
 // Computadora (el escritorio del jugador): se apaga al interactuar.
+// Su ORIENTACIÓN (`facing`, 0 arriba · 1 derecha · 2 abajo · 3 izquierda) es el lado del
+// teclado, donde se sienta el jugador: al empezar el nivel aparece en la casilla de enfrente
+// mirando hacia la computadora (ver Level.build). Por defecto, abajo (el sprite sin girar).
 class Computer extends GameObject {
+  int facing = 2;
+
   Computer(int row, int col) { super(row, col); }
 
-  PImage texture() { return assets.computer; }
+  PImage texture() { return assets.computerRot[(facing + 2) % 4]; }
 
   boolean onInteract(Level level) {
     if (done) return false;
@@ -253,17 +258,26 @@ class CatBowl extends GameObject {
 
 // Escalera: al PISARLA el jugador pasa a la escalera pareja del otro piso (se emparejan
 // al cargar el nivel: ver Level.linkStairs). '^' sube (piso anterior), 'v' baja (siguiente).
+//
+// ORIENTACIÓN: `exitDir` (0 arriba · 1 derecha · 2 abajo · 3 izquierda) es hacia donde queda
+// mirando el jugador al SALIR por esta escalera. El pozo (el degradado del sprite) queda del
+// lado contrario, a su espalda, así que la escalera se dibuja girada en consecuencia. Al
+// subirla o bajarla se entra caminando hacia el pozo. Se fija con "orientation" en el JSON.
 class Stairs extends GameObject {
   boolean up;
   int floorIndex;
   Stairs dest = null;
+  int exitDir = -1;      // -1 = sin especificar: Level la deduce de las paredes que la rodean
 
   Stairs(int row, int col, boolean up) {
     super(row, col);
     this.up = up;
   }
 
-  PImage texture() { return up ? assets.stairUp : assets.stairDown; }
+  PImage texture() {
+    int turns = (exitDir + 2) % 4;
+    return up ? assets.stairUpRot[turns] : assets.stairDownRot[turns];
+  }
 
   void onEnter(Level level, Player player) {
     if (dest == null) {
@@ -271,6 +285,6 @@ class Stairs extends GameObject {
       return;
     }
     level.setFloor(dest.floorIndex);
-    player.teleportTo(level, dest.row, dest.col);
+    player.teleportTo(level, dest.row, dest.col, dest.exitDir * HALF_PI);   // sale mirando hacia donde dice la escalera de destino
   }
 }

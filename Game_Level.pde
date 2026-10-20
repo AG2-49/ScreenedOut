@@ -121,12 +121,52 @@ class Level {
     }
     linkStairs();
 
+    // ----- Orientación de computadoras y escaleras: {"at": [piso, fila, col], "direction": "left"} -----
+    // direction: up / right / down / left. Computadora = lado del teclado; escalera = hacia dónde
+    // mira el jugador al salir por ella. Las escaleras sin orientación la deducen de las paredes.
+    if (json.hasKey("orientation")) {
+      JSONArray list = json.getJSONArray("orientation");
+      for (int i = 0; i < list.size(); i++) {
+        JSONObject oj = list.getJSONObject(i);
+        int[] p = parsePos(oj.getJSONArray("at"));
+        GameObject o = objectAtFloor(p[0], p[1], p[2]);
+        int d = directionIndex(oj.getString("direction", "down"));
+        if (o instanceof Computer) ((Computer) o).facing = d;
+        else if (o instanceof Stairs) ((Stairs) o).exitDir = d;
+        else println("Aviso (" + id + "): 'orientation' en " + (i) + " no apunta a una computadora ni a una escalera");
+      }
+    }
+    for (Floor fl : floors) {
+      for (GameObject o : fl.objects) {
+        if (o instanceof Stairs && ((Stairs) o).exitDir < 0) ((Stairs) o).exitDir = guessStairExit(fl, (Stairs) o);
+      }
+    }
+
     // ----- Inicio del jugador -----
+    // Con "row" y "col" se coloca a mano. Sin ellos, arranca sentado en la casilla de enfrente de
+    // la primera computadora del piso, mirándola (así su orientación decide dónde y hacia dónde).
     JSONObject start = json.getJSONObject("start");
     startFloor = constrain(start.getInt("floor", 0), 0, floors.size() - 1);
-    startRow = start.getInt("row");
-    startCol = start.getInt("col");
-    startLooking = directionToAngle(start.getString("direction", "right"));
+    if (start.hasKey("row") && start.hasKey("col")) {
+      startRow = start.getInt("row");
+      startCol = start.getInt("col");
+      startLooking = directionToAngle(start.getString("direction", "right"));
+    } else {
+      Computer pc = null;
+      for (GameObject o : floors.get(startFloor).objects) {
+        if (o instanceof Computer) { pc = (Computer) o; break; }
+      }
+      if (pc == null) {
+        println("Aviso (" + id + "): 'start' sin fila/columna y no hay computadora en el piso inicial");
+        startRow = 1;
+        startCol = 1;
+        startLooking = HALF_PI;
+      } else {
+        startRow = pc.row + DIR_ROW[pc.facing];
+        startCol = pc.col + DIR_COL[pc.facing];
+        startLooking = ((pc.facing + 2) % 4) * HALF_PI;
+      }
+    }
     setFloor(startFloor);
 
     // ----- Ayuda opcional (tutoriales): {"hint": "texto"} -----
@@ -379,6 +419,32 @@ class Level {
       case 'v': return new Stairs(row, col, false);
       default:  return null;
     }
+  }
+
+  // Direcciones como índice: 0 arriba, 1 derecha, 2 abajo, 3 izquierda (como el ángulo, en cuartos de vuelta)
+  final int[] DIR_ROW = {-1, 0, 1, 0};
+  final int[] DIR_COL = {0, 1, 0, -1};
+
+  int directionIndex(String dir) {
+    if (dir.equals("up")) return 0;
+    if (dir.equals("right")) return 1;
+    if (dir.equals("left")) return 3;
+    return 2; // "down" y cualquier otro valor
+  }
+
+  // Salida por defecto de una escalera: hacia el lado libre que tenga una pared justo detrás
+  // (el pozo contra la pared); si no hay ninguno, hacia el primer lado libre.
+  int guessStairExit(Floor f, Stairs s) {
+    int firstFree = -1;
+    for (int d = 0; d < 4; d++) {
+      boolean free = f.inBounds(s.row + DIR_ROW[d], s.col + DIR_COL[d]) && f.terrain[s.row + DIR_ROW[d]][s.col + DIR_COL[d]] != 'W';
+      if (!free) continue;
+      if (firstFree < 0) firstFree = d;
+      int back = (d + 2) % 4;
+      int br = s.row + DIR_ROW[back], bc = s.col + DIR_COL[back];
+      if (!f.inBounds(br, bc) || f.terrain[br][bc] == 'W') return d;
+    }
+    return firstFree < 0 ? 2 : firstFree;
   }
 
   float directionToAngle(String dir) {

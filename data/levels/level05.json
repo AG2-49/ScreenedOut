@@ -2,10 +2,7 @@
   "id": "level05",
   "name": "Nivel 5",
   "start": {
-    "floor": 0,
-    "row": 2,
-    "col": 2,
-    "direction": "left"
+    "floor": 0
   },
   "clock": {
     "from": "8:00",
@@ -29,10 +26,10 @@
       "name": "Piso 2",
       "map": [
         "WWWWWWWW",
-        "W.L...vW",
+        "W.L...^W",
         "W...N..W",
         "W.....PW",
-        "W.....^W",
+        "W.....vW",
         "WWWWWWWW"
       ]
     },
@@ -46,6 +43,48 @@
         "W......W",
         "WWWWWWWW"
       ]
+    }
+  ],
+  "orientation": [
+    {
+      "at": [
+        0,
+        2,
+        1
+      ],
+      "direction": "right"
+    },
+    {
+      "at": [
+        0,
+        5,
+        6
+      ],
+      "direction": "up"
+    },
+    {
+      "at": [
+        1,
+        1,
+        6
+      ],
+      "direction": "down"
+    },
+    {
+      "at": [
+        1,
+        4,
+        6
+      ],
+      "direction": "up"
+    },
+    {
+      "at": [
+        2,
+        1,
+        6
+      ],
+      "direction": "down"
     }
   ],
   "links": [
@@ -87,7 +126,7 @@
         1,
         1
       ],
-      "text": "Ya es de noche y la casa entera es un desastre. Recoge todos los platos, barre el pasillo y cambia el agua del gato. Hablaremos cuando volvamos. — Mamá",
+      "text": "La casa entera es un desastre y ya no sabemos cómo decírtelo. Recoge todos los platos, barre el pasillo y cambia el agua del gato. Hablaremos cuando volvamos. — Mamá",
       "tasks": [
         {
           "text": "Recoger los platos",
@@ -114,7 +153,7 @@
         2,
         4
       ],
-      "text": "Mira por la ventana: hoy hubo sol y no lo viste. Lava los platos y baja a ver cómo está la sala. — Papá",
+      "text": "Abre una ventana: afuera hay sol. Lava los platos y baja a ver cómo está la sala. — Papá",
       "tasks": [
         {
           "text": "Lavar los platos",
@@ -132,7 +171,7 @@
         1,
         5
       ],
-      "text": "Esto de abajo lo veníamos aguantando, pero ya es demasiado. Barre la sala. Y cuando termines, ven a cenar con nosotros: te estamos esperando. Te queremos. — Mamá y Papá",
+      "text": "Esto de abajo lo veníamos aguantando, pero ya es demasiado. Barre la sala. Cuando regresemos queremos cenar contigo, en la mesa y sin pantallas. Te queremos. — Mamá y Papá",
       "tasks": [
         {
           "text": "Barrer la sala",

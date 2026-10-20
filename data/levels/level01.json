@@ -1,11 +1,7 @@
 {
   "id": "level01",
   "name": "Nivel 1",
-  "start": {
-    "row": 2,
-    "col": 2,
-    "direction": "left"
-  },
+  "start": {},
   "clock": {
     "from": "8:00",
     "to": "10:00",
@@ -18,6 +14,15 @@
     "W....W",
     "W...CW",
     "WWWWWW"
+  ],
+  "orientation": [
+    {
+      "at": [
+        2,
+        1
+      ],
+      "direction": "right"
+    }
   ],
   "links": [],
   "tasks": [

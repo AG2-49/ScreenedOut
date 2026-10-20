@@ -2,6 +2,8 @@
 //  Program_Panel.pde — Interfaz del panel de programación
 //  Paleta de acciones, lista apilada con scroll (▲ ▼ ✕ por fila) y
 //  botones Limpiar / Correr. Solo edita el Program; no ejecuta nada.
+//  Cada fila reacciona al mouse (hover) y se SELECCIONA al hacer clic sobre ella (otro clic en
+//  la misma la suelta). Al moverla con ▲/▼ la selección la acompaña, para no perderla de vista.
 // ============================================================
 
 class ProgramPanel {
@@ -27,6 +29,8 @@ class ProgramPanel {
   boolean dragging = false;     // arrastre con click sostenido sobre la lista
   float dragStartY, dragScrollStart;
   UIButton clearBtn, runBtn;
+  int selectedIndex = -1;       // fila seleccionada (-1 = ninguna)
+  int pressIndex = -1;          // fila sobre la que se pulsó el mouse (para distinguir clic de arrastre)
 
   ProgramPanel(Rect area, Program program, ProgramRunner runner, LevelScreen owner) {
     this.area = area;
@@ -69,6 +73,15 @@ class ProgramPanel {
   boolean overStack() {
     int ax = stackX(), ay = stackY(), aw = stackW(), ah = stackH();
     return mouseX >= ax && mouseX <= ax + aw && mouseY >= ay && mouseY <= ay + ah;
+  }
+  // Fila bajo el mouse (-1 si no hay: fuera de la lista, o en el hueco entre filas).
+  int rowAt() {
+    if (!overStack()) return -1;
+    float contentY = mouseY - stackY() + scrollPx();
+    int index = (int) (contentY / (itemH + itemGap));
+    if (contentY < 0 || index < 0 || index >= program.size()) return -1;
+    if (contentY > index * (itemH + itemGap) + itemH) return -1;
+    return index;
   }
   boolean canDragHere() { return maxScroll() > 0 && overStack(); }
 
@@ -161,15 +174,34 @@ class ProgramPanel {
     textAlign(LEFT, CENTER);
     textSize(13);
 
+    if (selectedIndex >= program.size()) selectedIndex = -1;
+    int hoverRow = rowAt();
+
     for (int i = 0; i < program.size(); i++) {
       int iy = ay + i * (itemH + itemGap);
       int action = program.get(i);
       boolean isCurrent = runner.running && i == runner.currentStep;
+      boolean isSelected = i == selectedIndex;
+      boolean isHover = !runner.running && !dragging && i == hoverRow;
 
-      fill(isCurrent ? color(255, 221, 120) : color(247, 249, 255));
-      stroke(60, 90, 160);
-      strokeWeight(1.5);
+      // Prioridad: en ejecución (amarillo) > seleccionada > bajo el mouse > normal
+      if (isCurrent)       fill(255, 221, 120);
+      else if (isSelected) fill(186, 211, 255);
+      else if (isHover)    fill(226, 236, 255);
+      else                 fill(247, 249, 255);
+      if (isSelected && !isCurrent) {
+        stroke(25, 55, 150);
+        strokeWeight(3);
+      } else {
+        stroke(60, 90, 160);
+        strokeWeight(isHover ? 2.5 : 1.5);
+      }
       rect(ax, iy, aw, itemH, 6);
+      if (isSelected && !isCurrent) {   // barra lateral: se ve incluso de reojo
+        noStroke();
+        fill(25, 55, 150);
+        rect(ax, iy, 6, itemH, 6, 0, 0, 6);
+      }
 
       fill(30, 50, 100);
       text((i + 1) + ".", ax + 10, iy + itemH / 2.0);
@@ -206,7 +238,11 @@ class ProgramPanel {
 
   void drawRowButton(float bx, float by, String icon, boolean enabled) {
     pushStyle();
-    fill(enabled ? color(255, 235, 235) : color(235));
+    // El dibujo ya está trasladado por el scroll: el mouse se compara en coordenadas de la lista
+    boolean over = enabled && !runner.running && overStack() &&
+                   mouseX >= bx && mouseX <= bx + rowBtn &&
+                   mouseY + scrollPx() >= by && mouseY + scrollPx() <= by + rowBtn;
+    fill(!enabled ? color(235) : (over ? color(255, 205, 205) : color(255, 235, 235)));
     stroke(enabled ? color(160, 60, 60) : color(200));
     strokeWeight(1);
     rect(bx, by, rowBtn, rowBtn, 4);
@@ -224,6 +260,7 @@ class ProgramPanel {
   void mousePressed() {
     // Mientras corre no se edita la secuencia, pero sí se puede arrastrar la lista para mirarla
     if (runner.running) {
+      pressIndex = -1;
       if (overStack()) beginDrag();
       return;
     }
@@ -243,13 +280,16 @@ class ProgramPanel {
 
     if (handleStackClick()) return;
 
-    // Click en la lista que no cayó en un botón de fila: empieza el arrastre
+    // Click en la lista que no cayó en un botón de fila: puede ser un clic (selecciona la fila,
+    // se resuelve al soltar) o el inicio de un arrastre para desplazar la lista
     if (overStack()) {
+      pressIndex = rowAt();
       beginDrag();
       return;
     }
 
     if (clearBtn.clicked()) {
+      selectedIndex = -1;
       program.clear();
       stackScrollY = 0;
       scrollTarget = 0;
@@ -257,6 +297,7 @@ class ProgramPanel {
     }
 
     if (runBtn.clicked()) {
+      selectedIndex = -1;
       owner.startRun();
     }
   }
@@ -275,6 +316,11 @@ class ProgramPanel {
   }
 
   void mouseReleased() {
+    // Soltar casi donde se pulsó = clic: selecciona la fila (o la suelta si ya lo estaba; en vacío, suelta)
+    if (dragging && !runner.running && abs(mouseY - dragStartY) < 5) {
+      selectedIndex = (pressIndex >= 0 && pressIndex != selectedIndex) ? pressIndex : -1;
+    }
+    pressIndex = -1;
     dragging = false;
   }
 
@@ -297,6 +343,7 @@ class ProgramPanel {
     if (mouseX >= btnUpX && mouseX <= btnUpX + rowBtn) {
       if (index > 0) {
         program.swap(index, index - 1);
+        selectedIndex = index - 1;      // la selección acompaña a la acción movida
         ensureVisible(index - 1);
       }
       return true;
@@ -304,12 +351,14 @@ class ProgramPanel {
     if (mouseX >= btnDownX && mouseX <= btnDownX + rowBtn) {
       if (index < program.size() - 1) {
         program.swap(index, index + 1);
+        selectedIndex = index + 1;
         ensureVisible(index + 1);
       }
       return true;
     }
     if (mouseX >= btnDelX && mouseX <= btnDelX + rowBtn) {
       program.removeAt(index);
+      selectedIndex = -1;
       clampScroll();
       return true;
     }

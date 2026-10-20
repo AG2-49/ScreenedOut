@@ -1,11 +1,7 @@
 {
   "id": "level03",
   "name": "Nivel 3",
-  "start": {
-    "row": 2,
-    "col": 2,
-    "direction": "left"
-  },
+  "start": {},
   "clock": {
     "from": "8:00",
     "to": "12:00",
@@ -19,6 +15,15 @@
     "W...CWS.W.SW",
     "WWWWWW.BWWWW",
     "WWWWWWWWWWWW"
+  ],
+  "orientation": [
+    {
+      "at": [
+        2,
+        1
+      ],
+      "direction": "right"
+    }
   ],
   "links": [
     {
@@ -54,7 +59,7 @@
         1,
         1
       ],
-      "text": "Ya casi es mediodía y sigues pegado a ese computador. El gato lleva horas sin agua limpia: su plato está al fondo del pasillo y la puerta solo se abre con el botón del suelo. Y de paso, barre todo eso. Menos computador y más vida, ¿sí? — Papá",
+      "text": "Salimos a trabajar. El gato se quedó sin agua limpia: su plato está al fondo del pasillo y la puerta solo se abre con el botón del suelo. Y de paso, barre todo eso. Menos computador y más vida, ¿sí? — Papá",
       "tasks": [
         {
           "text": "Barrer el pasillo",

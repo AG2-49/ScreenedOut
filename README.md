@@ -156,3 +156,31 @@ su tarea se cumple cuando ya no queda ninguno sin lavar.
 
 Caja ámbar (`hintColor`) sobre el objeto en rango o bajo el mouse; en violeta (`linkColor`) los objetos
 que ese objeto activa (la puerta de un botón). Para ligar un objeto a otro: `links` en el JSON.
+
+## Orientación (computadora y escaleras) y arranque
+
+En el JSON: `"orientation": [{"at": [piso, fila, col], "direction": "up|right|down|left"}]`.
+
+- **Computadora:** `direction` es el lado del teclado (donde se sienta el jugador). Si `start` no trae `row`/`col`,
+  el jugador arranca en la casilla de enfrente, mirándola. (`start` con `row`, `col` y `direction` sigue funcionando.)
+- **Escalera:** `direction` es hacia dónde queda mirando el jugador al SALIR por esa escalera. El pozo del sprite
+  queda a su espalda; se entra caminando hacia el pozo. Sin orientación, se deduce de las paredes.
+  Ejemplo: la `v` de arriba sale mirando `up` y su `^` pareja, abajo, sale mirando `down`.
+
+## Panel de acciones
+
+Las filas se resaltan al pasar el mouse; un clic las selecciona (otro clic en la misma, o en vacío, la suelta).
+Al moverla con ▲/▼ la selección la acompaña. Se limpia al borrar, al «Limpiar todo» y al «Correr».
+
+## Selector de pisos (UI_FloorSelector.pde)
+
+En niveles con varios pisos aparece arriba a la izquierda del mapa una lista desplegable. Cambia solo el piso que
+SE VE (`LevelScreen.viewFloor`), no el del personaje; la fila del piso donde está el personaje lleva su carita.
+Al mirar otro piso el mapa se oscurece un poco y se indica «Personaje: Piso N». Si el personaje cambia de piso
+(escaleras), la vista lo sigue.
+
+## Personaje
+
+Cabeza = círculo con `data/Assets/skin/Face.png` + flecha en forma de «techo» (^) que gira a su alrededor
+(`Player.draw`). Todo se ajusta con las constantes `PLAYER_*` de Config.pde: tamaño del círculo, de la cara, medidas
+y grosor de la flecha, colores, y si la cara gira con el personaje (`PLAYER_FACE_ROTATES`).

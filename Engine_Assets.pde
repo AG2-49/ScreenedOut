@@ -13,6 +13,10 @@ final int W_BIT = 8;
 class Assets {
   PImage floor, door, doorVertical, computer, note, buttonPressed, buttonUnpressed;
   PImage bed, bedMess, dishDirty, sink, stairUp, stairDown, waterClean, waterDirty;
+  PImage[] computerRot = new PImage[4];   // computadora girada: índice = vueltas de 90° en sentido horario
+  PImage[] stairUpRot = new PImage[4];
+  PImage[] stairDownRot = new PImage[4];
+  PImage playerFace, playerFaceIcon;      // cara del personaje (Assets/skin/Face.png), grande y para el selector de pisos
   PImage[] grime = new PImage[4];        // 4 variantes; cada suciedad elige una al azar
   PImage[] wallByMask = new PImage[16];   // indexada por máscara de vecinos
   PImage[] holeByMask = new PImage[16];
@@ -43,6 +47,14 @@ class Assets {
     stairDown   = loadTile(t + "StairDown.png");
     waterClean  = loadTile(t + "WaterClean.png");
     waterDirty  = loadTile(t + "WaterDirty.png");
+    // ----- Personaje: la cara se escala para caber dentro de su círculo (casi el diámetro completo) -----
+    PImage face = loadImage("Assets/skin/Face.png");
+    playerFace     = scaleNearest(face, round(TILE_SIZE * PLAYER_RADIUS_K * 2 * PLAYER_FACE_FILL));
+    playerFaceIcon = scaleNearest(face, 20);
+
+    computerRot  = rotations(computer);
+    stairUpRot   = rotations(stairUp);
+    stairDownRot = rotations(stairDown);
     for (int i = 0; i < grime.length; i++) {
       grime[i] = loadTile(t + "Grime" + (i + 1) + ".png");
     }
@@ -77,6 +89,14 @@ class Assets {
       iconPalette[i] = scaleNearest(src, PALETTE_BTN_SIZE);
       iconRow[i]     = scaleNearest(src, ROW_ICON_SIZE);
     }
+  }
+
+  // [original, +90°, +180°, +270°] en sentido horario (los sprites se dibujan mirando hacia ABAJO)
+  PImage[] rotations(PImage src) {
+    PImage[] r = new PImage[4];
+    r[0] = src;
+    for (int i = 1; i < 4; i++) r[i] = rotateCW(r[i - 1]);
+    return r;
   }
 
   PImage loadTile(String path) {

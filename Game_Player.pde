@@ -35,10 +35,11 @@ class Player {
     snapVisual();   // al reiniciar no se anima: se ve la casilla de salida tal cual
   }
 
-  // Salta a otra casilla del piso actual sin animar (lo usan las escaleras).
-  void teleportTo(Level level, int newRow, int newCol) {
+  // Salta a otra casilla del piso actual sin animar y mirando hacia 'angle' (lo usan las escaleras).
+  void teleportTo(Level level, int newRow, int newCol, float angle) {
     row = newRow;
     col = newCol;
+    looking = angle;
     level.markVisited(row, col);
     snapVisual();
   }
@@ -92,25 +93,42 @@ class Player {
     return d;
   }
 
+  // Cabeza = círculo con la cara (siempre derecha, para que se lea) + una flecha en forma de
+  // «techo» (^) separada del círculo que gira a su alrededor y marca hacia dónde mira.
+  // Todas las medidas y colores se ajustan en Config.pde (PLAYER_*).
+
   void draw() {
+    float r = TILE_SIZE * PLAYER_RADIUS_K;
+    color ink = fell ? playerInkFell : playerInk;
+
     pushMatrix();
     pushStyle();
     translate(px(), py());
-    rotate(visLooking);
 
-    fill(fell ? color(120) : color(255, 0, 0));
-    noStroke();
-
-    float r = TILE_SIZE * 0.3; // radio del cuerpo
+    pushMatrix();
+    if (PLAYER_FACE_ROTATES) rotate(visLooking);
+    stroke(ink);
+    strokeWeight(PLAYER_RING_WEIGHT);
+    fill(255);
     ellipse(0, 0, r * 2, r * 2);
+    imageMode(CENTER);
+    if (fell) tint(150);
+    image(assets.playerFace, 0, 0);
+    noTint();
+    popMatrix();
 
-    float triLen = r * 1.3;
-    float triBase = r * 1.1;
-    triangle(
-      -triBase / 2, -r * 0.3,
-       triBase / 2, -r * 0.3,
-       0, -r - triLen + r * 0.3
-    );
+    // Flecha: proporciones del boceto (más ancha que la cara y baja)
+    rotate(visLooking);
+    noFill();
+    stroke(ink);
+    strokeWeight(PLAYER_ARROW_WEIGHT);
+    strokeJoin(MITER);
+    float halfW = r * PLAYER_ARROW_HALF_W, h = r * PLAYER_ARROW_HEIGHT, gap = r * PLAYER_ARROW_GAP;
+    beginShape();
+    vertex(-halfW, -(r + gap));
+    vertex(0, -(r + gap + h));
+    vertex(halfW, -(r + gap));
+    endShape();
 
     popStyle();
     popMatrix();
