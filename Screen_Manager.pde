@@ -7,6 +7,8 @@
 Screen currentScreen;
 
 void goTo(Screen next) {
+  audio.silence();                               // los efectos no cruzan de una pantalla a otra
+  audio.setInLevel(next instanceof LevelScreen); // la música baja de volumen dentro de un nivel
   currentScreen = next;
   cursor(ARROW);
   currentScreen.onEnter();

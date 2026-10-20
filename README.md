@@ -122,3 +122,65 @@ Ventana de 1160×500: tareas (260 px) | mapa (410 px) | programación (410 px). 
 ## Pendiente / ideas
 
 - `save.json` se escribe en `data/`; si exportas la app, verifica que esa ruta sea escribible.
+
+---
+
+## Audio (Engine_Audio.pde)
+
+Requiere la librería **Minim** (Sketch ▸ Importar librería ▸ Gestionar librerías ▸ «Minim»).
+Todo pasa por la variable global `audio`: `play("Nombre")`, `stop("Nombre")`, `walkStep(ms)`,
+`stopWalk()`, `silence()`. Las ganancias por sonido (en dB) están en `SFX_GAIN`.
+Tecla **M**: silenciar / activar.
+
+**Pasos:** `Walk.mp3` suena en bucle mientras el jugador siga caminando. Cada paso exitoso renueva
+un plazo (`walkStep`); girar, interactuar, chocar o caer lo cortan con un fundido (`stopWalk`);
+si nadie lo renueva, se apaga solo. El `ProgramRunner` avisa si la siguiente acción también es
+«Avanzar» para que el bucle no se corte entre casillas.
+
+## Mapas
+
+Caracteres: `.` suelo · `W` pared · `H` hueco · `D` puerta · `G` computadora · `B` botón · `N` nota ·
+`C` cama · `S` suciedad · `P` plato sucio · `L` lavabo · `A` agua del gato · `^` escalera que sube · `v` escalera que baja.
+
+**Pisos:** en lugar de `"map"` se usa `"floors": [{"name": "Piso 3", "map": [...]}, ...]` (de arriba hacia abajo).
+La k-ésima `v` de un piso se empareja con la k-ésima `^` del piso siguiente; basta con pisar la escalera.
+Posiciones en `links`, `notes` y tareas: `[fila, col]` (piso 0) o `[piso, fila, col]`. `start` admite `"floor"`.
+
+**Tareas:** `{"target": [f,c]}` · `{"targets": [[f,c],...]}` · `{"all": "S"}` (todas las S; `"floor": n` las limita a un piso) ·
+`{"reach": [f,c]}` (se cumple al pisar esa casilla). Con varios objetivos la lista muestra «(2/5)».
+
+**Platos:** al recogerlos el jugador los lleva (se ve el plato junto a él); el lavabo los lava todos de una vez y
+su tarea se cumple cuando ya no queda ninguno sin lavar.
+
+## Resalte de objetos
+
+Caja ámbar (`hintColor`) sobre el objeto en rango o bajo el mouse; en violeta (`linkColor`) los objetos
+que ese objeto activa (la puerta de un botón). Para ligar un objeto a otro: `links` en el JSON.
+
+## Orientación (computadora y escaleras) y arranque
+
+En el JSON: `"orientation": [{"at": [piso, fila, col], "direction": "up|right|down|left"}]`.
+
+- **Computadora:** `direction` es el lado del teclado (donde se sienta el jugador). Si `start` no trae `row`/`col`,
+  el jugador arranca en la casilla de enfrente, mirándola. (`start` con `row`, `col` y `direction` sigue funcionando.)
+- **Escalera:** `direction` es hacia dónde queda mirando el jugador al SALIR por esa escalera. El pozo del sprite
+  queda a su espalda; se entra caminando hacia el pozo. Sin orientación, se deduce de las paredes.
+  Ejemplo: la `v` de arriba sale mirando `up` y su `^` pareja, abajo, sale mirando `down`.
+
+## Panel de acciones
+
+Las filas se resaltan al pasar el mouse; un clic las selecciona (otro clic en la misma, o en vacío, la suelta).
+Al moverla con ▲/▼ la selección la acompaña. Se limpia al borrar, al «Limpiar todo» y al «Correr».
+
+## Selector de pisos (UI_FloorSelector.pde)
+
+En niveles con varios pisos aparece arriba a la izquierda del mapa una lista desplegable. Cambia solo el piso que
+SE VE (`LevelScreen.viewFloor`), no el del personaje; la fila del piso donde está el personaje lleva su carita.
+Al mirar otro piso el mapa se oscurece un poco y se indica «Personaje: Piso N». Si el personaje cambia de piso
+(escaleras), la vista lo sigue.
+
+## Personaje
+
+Cabeza = círculo con `data/Assets/skin/Face.png` + flecha en forma de «techo» (^) que gira a su alrededor
+(`Player.draw`). Todo se ajusta con las constantes `PLAYER_*` de Config.pde: tamaño del círculo, de la cara, medidas
+y grosor de la flecha, colores, y si la cara gira con el personaje (`PLAYER_FACE_ROTATES`).

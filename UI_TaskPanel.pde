@@ -85,7 +85,7 @@ class TaskPanel {
   float drawTask(Task t, float x, float y, float w) {
     boolean done = t.isDone();
     textSize(13);
-    ArrayList<String> lines = wrap(t.text, w - boxSize - 10);
+    ArrayList<String> lines = wrap(t.label(), w - boxSize - 10);
     float h = max(boxSize + 4, lines.size() * lineH);
 
     // Casilla de verificación

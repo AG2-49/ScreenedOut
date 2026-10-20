@@ -86,6 +86,15 @@ class Camera {
     dragging = false;
   }
 
+  // Casilla {fila, columna} del mapa que hay bajo un punto de la pantalla (puede quedar fuera
+  // del mapa: quien llama comprueba con level.inBounds). Usa el mismo desplazamiento redondeado
+  // que begin(), así coincide exactamente con lo dibujado.
+  int[] tileAt(float screenX, float screenY) {
+    float mapX = screenX - area.x - round(centerX) + round(offsetX);
+    float mapY = screenY - area.y - round(centerY) + round(offsetY);
+    return new int[]{ floor(mapY / TILE_SIZE), floor(mapX / TILE_SIZE) };
+  }
+
   // ¿Se puede arrastrar el mapa desde donde está el mouse? (la pantalla decide el cursor)
   boolean canDragHere() {
     return (needsScrollX || needsScrollY) && area.containsMouse();

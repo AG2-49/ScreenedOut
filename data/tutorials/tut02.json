@@ -1,42 +1,21 @@
 {
   "id": "tut02",
   "name": "Tutorial 2: Tareas",
-  "hint": "Cada tarea de la lista se cumple interactuando con su objeto: debes estar mirándolo de frente.",
-  "start": {
-    "row": 2,
-    "col": 3,
-    "direction": "up"
-  },
+  "hint": "Cada tarea se cumple interactuando con su objeto, mirándolo de frente. El plato hay que recogerlo y llevarlo al lavabo.",
+  "start": { "row": 2, "col": 3, "direction": "up" },
   "map": [
     "WWWWWWW",
     "WC....W",
     "W.....W",
-    "WL...TW",
+    "WL.P.SW",
     "WWWWWWW"
   ],
   "links": [],
   "tasks": [
-    {
-      "text": "Ordenar la cama",
-      "target": [
-        1,
-        1
-      ]
-    },
-    {
-      "text": "Lavar los platos",
-      "target": [
-        3,
-        1
-      ]
-    },
-    {
-      "text": "Sacar la basura",
-      "target": [
-        3,
-        5
-      ]
-    }
+    { "text": "Ordenar la cama", "target": [1, 1] },
+    { "text": "Recoger el plato", "target": [3, 3] },
+    { "text": "Lavar el plato", "target": [3, 1] },
+    { "text": "Barrer el piso", "target": [3, 5] }
   ],
   "notes": []
 }
