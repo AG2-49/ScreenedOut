@@ -1,0 +1,52 @@
+{
+  "id": "prueba_notas",
+  "name": "Prueba de notas",
+  "start": {
+    "row": 0,
+    "col": 0,
+    "direction": "right"
+  },
+  "clock": {
+    "from": "8:00",
+    "to": "10:00",
+    "text": "Solo un video más…"
+  },
+  "map": [
+    "....W...",
+    "WWW.W...",
+    "....WDW.",
+    ".WWWW.W.",
+    "..N...H.",
+    "......H.",
+    "....WWW.",
+    "....W..G"
+  ],
+  "links": [],
+  "tasks": [
+    {
+      "text": "Abrir la puerta",
+      "target": [
+        2,
+        5
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "at": [
+        4,
+        2
+      ],
+      "text": "Texto de ejemplo de la nota. Aquí irá el contenido real.",
+      "tasks": [
+        {
+          "text": "Usar la computadora",
+          "target": [
+            7,
+            7
+          ]
+        }
+      ]
+    }
+  ]
+}

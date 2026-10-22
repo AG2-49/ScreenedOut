@@ -1,0 +1,141 @@
+{
+  "id": "level04",
+  "name": "Nivel 4",
+  "start": {
+    "floor": 0
+  },
+  "clock": {
+    "from": "8:00",
+    "to": "15:00",
+    "text": "Un capítulo más y apago…"
+  },
+  "floors": [
+    {
+      "name": "Piso 3",
+      "map": [
+        "WWWWWWWWWWWW",
+        "WN...WS.WS.W",
+        "WG...W.SW.AW",
+        "W..P.D..D..W",
+        "W...CWS.W.SW",
+        "WWWWWWvBWWWW",
+        "WWWWWWWWWWWW"
+      ]
+    },
+    {
+      "name": "Piso 2",
+      "map": [
+        "WWWWWWWW",
+        "W.L...^W",
+        "W...N..W",
+        "W.....PW",
+        "W......W",
+        "WWWWWWWW"
+      ]
+    }
+  ],
+  "orientation": [
+    {
+      "at": [
+        0,
+        2,
+        1
+      ],
+      "direction": "right"
+    },
+    {
+      "at": [
+        0,
+        5,
+        6
+      ],
+      "direction": "up"
+    },
+    {
+      "at": [
+        1,
+        1,
+        6
+      ],
+      "direction": "down"
+    }
+  ],
+  "links": [
+    {
+      "from": [
+        0,
+        5,
+        7
+      ],
+      "to": [
+        0,
+        3,
+        8
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "text": "Apagar el computador",
+      "target": [
+        0,
+        2,
+        1
+      ]
+    },
+    {
+      "text": "Ordenar la cama",
+      "target": [
+        0,
+        4,
+        4
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "at": [
+        0,
+        1,
+        1
+      ],
+      "text": "Salimos por todo el día. Recoge los platos que dejaste por la casa, barre el pasillo y cambia el agua del gato. Los platos se lavan en el lavabo de abajo. — Mamá",
+      "tasks": [
+        {
+          "text": "Recoger los platos",
+          "all": "P"
+        },
+        {
+          "text": "Barrer el pasillo",
+          "all": "S"
+        },
+        {
+          "text": "Cambiar el agua del gato",
+          "target": [
+            0,
+            2,
+            10
+          ]
+        }
+      ]
+    },
+    {
+      "at": [
+        1,
+        2,
+        4
+      ],
+      "text": "Si estás leyendo esto es que por fin saliste de la silla. ¡Bien! Ahora lava los platos. Te quiero, pero el computador no va a lavar los platos por ti. — Papá",
+      "tasks": [
+        {
+          "text": "Lavar los platos",
+          "target": [
+            1,
+            1,
+            2
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,184 @@
+{
+  "id": "level05",
+  "name": "Nivel 5",
+  "start": {
+    "floor": 0
+  },
+  "clock": {
+    "from": "8:00",
+    "to": "21:00",
+    "text": "Ya casi termino…"
+  },
+  "floors": [
+    {
+      "name": "Piso 3",
+      "map": [
+        "WWWWWWWWWWWW",
+        "WN...WS.WS.W",
+        "WG...W.SW.AW",
+        "W..P.D..D..W",
+        "W...CWS.W.SW",
+        "WWWWWWvBWWWW",
+        "WWWWWWWWWWWW"
+      ]
+    },
+    {
+      "name": "Piso 2",
+      "map": [
+        "WWWWWWWW",
+        "W.L...^W",
+        "W...N..W",
+        "W.....PW",
+        "W.....vW",
+        "WWWWWWWW"
+      ]
+    },
+    {
+      "name": "Piso 1",
+      "map": [
+        "WWWWWWWW",
+        "W....N^W",
+        "W.S....W",
+        "WP.WS..W",
+        "W......W",
+        "WWWWWWWW"
+      ]
+    }
+  ],
+  "orientation": [
+    {
+      "at": [
+        0,
+        2,
+        1
+      ],
+      "direction": "right"
+    },
+    {
+      "at": [
+        0,
+        5,
+        6
+      ],
+      "direction": "up"
+    },
+    {
+      "at": [
+        1,
+        1,
+        6
+      ],
+      "direction": "down"
+    },
+    {
+      "at": [
+        1,
+        4,
+        6
+      ],
+      "direction": "up"
+    },
+    {
+      "at": [
+        2,
+        1,
+        6
+      ],
+      "direction": "down"
+    }
+  ],
+  "links": [
+    {
+      "from": [
+        0,
+        5,
+        7
+      ],
+      "to": [
+        0,
+        3,
+        8
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "text": "Apagar el computador",
+      "target": [
+        0,
+        2,
+        1
+      ]
+    },
+    {
+      "text": "Ordenar la cama",
+      "target": [
+        0,
+        4,
+        4
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "at": [
+        0,
+        1,
+        1
+      ],
+      "text": "La casa entera es un desastre y ya no sabemos cómo decírtelo. Recoge todos los platos, barre el pasillo y cambia el agua del gato. Hablaremos cuando volvamos. — Mamá",
+      "tasks": [
+        {
+          "text": "Recoger los platos",
+          "all": "P"
+        },
+        {
+          "text": "Barrer el pasillo",
+          "all": "S",
+          "floor": 0
+        },
+        {
+          "text": "Cambiar el agua del gato",
+          "target": [
+            0,
+            2,
+            10
+          ]
+        }
+      ]
+    },
+    {
+      "at": [
+        1,
+        2,
+        4
+      ],
+      "text": "Abre una ventana: afuera hay sol. Lava los platos y baja a ver cómo está la sala. — Papá",
+      "tasks": [
+        {
+          "text": "Lavar los platos",
+          "target": [
+            1,
+            1,
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "at": [
+        2,
+        1,
+        5
+      ],
+      "text": "Esto de abajo lo veníamos aguantando, pero ya es demasiado. Barre la sala. Cuando regresemos queremos cenar contigo, en la mesa y sin pantallas. Te queremos. — Mamá y Papá",
+      "tasks": [
+        {
+          "text": "Barrer la sala",
+          "all": "S",
+          "floor": 2
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "id": "level02",
+  "name": "Nivel 2",
+  "start": {},
+  "clock": {
+    "from": "8:00",
+    "to": "11:00",
+    "text": "Ya casi termina este video…"
+  },
+  "map": [
+    "WWWWWWWWW",
+    "WN...WS.W",
+    "WG...W.SW",
+    "W....D..W",
+    "W...CWS.W",
+    "WWWWWWWWW"
+  ],
+  "orientation": [
+    {
+      "at": [
+        2,
+        1
+      ],
+      "direction": "right"
+    }
+  ],
+  "links": [],
+  "tasks": [
+    {
+      "text": "Apagar el computador",
+      "target": [
+        2,
+        1
+      ]
+    },
+    {
+      "text": "Ordenar la cama",
+      "target": [
+        4,
+        4
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "at": [
+        1,
+        1
+      ],
+      "text": "Buenos días, dormilón. Salimos a hacer unas compras. El pasillo está lleno de tierra: sal de tu cuarto y barre un poco, ¿sí? Volvemos en la tarde. — Mamá",
+      "tasks": [
+        {
+          "text": "Salir de tu habitación",
+          "reach": [
+            3,
+            6
+          ]
+        },
+        {
+          "text": "Barrer el pasillo",
+          "all": "S"
+        }
+      ]
+    }
+  ]
+}

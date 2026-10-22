@@ -1,0 +1,78 @@
+{
+  "id": "level03",
+  "name": "Nivel 3",
+  "start": {},
+  "clock": {
+    "from": "8:00",
+    "to": "12:00",
+    "text": "Solo termino esta partida…"
+  },
+  "map": [
+    "WWWWWWWWWWWW",
+    "WN...WS.WS.W",
+    "WG...W.SW.AW",
+    "W....D..D..W",
+    "W...CWS.W.SW",
+    "WWWWWW.BWWWW",
+    "WWWWWWWWWWWW"
+  ],
+  "orientation": [
+    {
+      "at": [
+        2,
+        1
+      ],
+      "direction": "right"
+    }
+  ],
+  "links": [
+    {
+      "from": [
+        5,
+        7
+      ],
+      "to": [
+        3,
+        8
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "text": "Apagar el computador",
+      "target": [
+        2,
+        1
+      ]
+    },
+    {
+      "text": "Ordenar la cama",
+      "target": [
+        4,
+        4
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "at": [
+        1,
+        1
+      ],
+      "text": "Salimos a trabajar. El gato se quedó sin agua limpia: su plato está al fondo del pasillo y la puerta solo se abre con el botón del suelo. Y de paso, barre todo eso. Menos computador y más vida, ¿sí? — Papá",
+      "tasks": [
+        {
+          "text": "Barrer el pasillo",
+          "all": "S"
+        },
+        {
+          "text": "Cambiar el agua del gato",
+          "target": [
+            2,
+            10
+          ]
+        }
+      ]
+    }
+  ]
+}
