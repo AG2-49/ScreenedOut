@@ -32,6 +32,7 @@ Rect progArea = new Rect(mapArea.x + MAP_W + PANEL_MARGIN, PANEL_MARGIN,
                          PROG_W, WINDOW_H - PANEL_MARGIN * 2);
 
 // ----- Sistemas globales (se crean en setup()) -----
+boolean FreeMove = false;
 Assets assets;
 Audio audio;               // música y efectos (Engine_Audio.pde)
 LevelCatalog levels;       // niveles del juego (data/levels)

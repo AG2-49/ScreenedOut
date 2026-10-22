@@ -353,17 +353,24 @@ class LevelScreen extends Screen {
       goNext();
       return;
     }
-
-    int dx = 0, dy = 0;
-    if (keyCode == RIGHT || keyCode == 'D') dx = 1;
-    else if (keyCode == LEFT || keyCode == 'A') dx = -1;
-    else if (keyCode == UP || keyCode == 'W') dy = -1;
-    else if (keyCode == DOWN || keyCode == 'S') dy = 1;
-
-    if (dx != 0 || dy != 0) {
-      player.tryMove(level, dx, dy);
-    } else if (keyCode == 'E') {
-      player.interact(level);
+    
+    if (FreeMove) {
+      if (keyCode == 'T') FreeMove = false;
+      
+      int dx = 0, dy = 0;
+      
+      if (keyCode == RIGHT || keyCode == 'D') dx = 1;
+      else if (keyCode == LEFT || keyCode == 'A') dx = -1;
+      else if (keyCode == UP || keyCode == 'W') dy = -1;
+      else if (keyCode == DOWN || keyCode == 'S') dy = 1;
+  
+      if (dx != 0 || dy != 0) {
+        player.tryMove(level, dx, dy);
+      } else if (keyCode == 'E') {
+        player.interact(level);
+      }
     }
+    else if (keyCode == 'T') FreeMove = true;
+
   }
 }
