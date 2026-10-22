@@ -1,42 +1,110 @@
-// ============================================================
-//  Screen_Home.pde — Menú principal
-// ============================================================
 
-class HomeScreen extends Screen {
-  UIButton playBtn, tutorialBtn, creditsBtn, exitBtn;
+ class HomeScreen extends Screen {
+  String[] labels = { "Niveles", "Tutorial", "Créditos", "Salir" };
+  PFont pixelFont;
+  int sel = 0;
+  RoomCam cam = new RoomCam();
 
-  HomeScreen() {
-    float w = 240, h = 48, gap = 14;
-    float x = (WINDOW_W - w) / 2.0;
-    float y = 180;
+  int mode = 0;          // 0 quieto, 1 acercándose, 2 alejándose
+  int target = 0;        // a cuál pantalla vamos: 0 niveles, 1 tutorial, 2 créditos
+  int animStart = 0;
+  int animDur = 1100;    // milisegundos
 
-    playBtn     = new UIButton(x, y, w, h, "Niveles");
-    tutorialBtn = new UIButton(x, y + (h + gap), w, h, "Tutorial");
-    creditsBtn  = new UIButton(x, y + (h + gap) * 2, w, h, "Créditos");
-    exitBtn     = new UIButton(x, y + (h + gap) * 3, w, h, "Salir");
-    exitBtn.colors(color(245, 180, 170), color(240, 150, 140), color(150, 60, 50), color(100, 30, 25));
+  HomeScreen() { this(false); }
+
+  HomeScreen(boolean zoomOut) {
+    pixelFont = createFont("PressStart2P-Regular.ttf", 32);
+    if (zoomOut) { mode = 2; animStart = millis(); }
+  }
+
+  // posición vertical de cada opción (76 = primera, 15 = separación entre ellas)
+  float lineY(int i) { return 76 + 15 * i; }
+
+  int hoveredRow() {
+    if (mode != 0) return -1;
+    float lx = (mouseX - roomOX()) / roomS();
+    float ly = mouseY / roomS();
+    for (int i = 0; i < labels.length; i++) {
+      float cy = lineY(i);
+      if (lx > 120 && lx < 260 && ly > cy - 7.5 && ly < cy + 7.5) return i;
+    }
+    return -1;
   }
 
   void draw() {
+    textSize(g.textSize);
+    PFont normalFont = g.textFont;
+    float normalSize = g.textSize;
+
+    float s = roomS(), ox = roomOX();
+    int hov = hoveredRow();
+    if (hov >= 0) sel = hov;
+
+    float t = 0, p = 0;
+    if (mode != 0) {
+      t = constrain((millis() - animStart) / (float) animDur, 0, 1);
+      p = (mode == 1) ? t : 1 - t;
+    }
+    cam.set(roomEase(p));
+
     pushStyle();
-    fill(30, 50, 100);
+    drawRoom(cam);
+
+    float fade = 1 - constrain((p - 0.55) / 0.35, 0, 1);
+    int a = (int) (255 * fade);
+
+    // línea bajo el título
+    cam.begin();
+    stroke(34, 230, 255, 100 * fade);
+    strokeWeight(s);
+    line(ox + 124 * s, 60 * s, ox + 256 * s, 60 * s);
+    cam.end();
+
+    // textos
+    noStroke();
+    textFont(pixelFont);
+    textSize(9 * s * cam.cz);
+
     textAlign(CENTER, CENTER);
-    textSize(44);
-    text("PROCRASTINATOR", WINDOW_W / 2.0, 100);
+    fill(34, 230, 255, a);
+    text("SCREENED-OUT", cam.x(ox + 190 * s), cam.y(50 * s));
+
+    textAlign(LEFT, CENTER);
+    for (int i = 0; i < labels.length; i++) {
+      boolean on = (i == sel);
+      String txt = (on ? "> " : "  ") + labels[i];
+      color c = on ? color(255, 181, 90) : (i == 3 ? color(255, 122, 168) : color(143, 232, 245));
+      fill(red(c), green(c), blue(c), a);
+      float x = cam.x(ox + 128 * s);
+      float y = cam.y(lineY(i) * s);
+      text(txt, x, y);
+
+      if (on && mode == 0 && (frameCount / 30) % 2 == 0) {
+        float tw = textWidth(txt);
+        fill(255, 181, 90, a);
+        rect(x + tw + 4 * s * cam.cz, y - 4 * s * cam.cz, 5 * s * cam.cz, 8 * s * cam.cz);
+      }
+    }
+
     popStyle();
+    textFont(normalFont, normalSize);
+    cursor(hov >= 0 ? HAND : ARROW);
 
-    playBtn.draw();
-    tutorialBtn.draw();
-    creditsBtn.draw();
-    exitBtn.draw();
-
-    cursor((playBtn.hover() || tutorialBtn.hover() || creditsBtn.hover() || exitBtn.hover()) ? HAND : ARROW);
+    if (mode != 0 && t >= 1) {
+      int m = mode;
+      mode = 0;
+      if (m == 1) {
+        if (target == 0) goTo(new LevelSelectScreen());
+        else if (target == 1) goTo(new TutorialSelectScreen());
+        else goTo(new CreditsScreen());
+      }
+    }
   }
 
   void mousePressed() {
-    if (playBtn.clicked()) goTo(new LevelSelectScreen());
-    else if (tutorialBtn.clicked()) goTo(new TutorialSelectScreen());
-    else if (creditsBtn.clicked()) goTo(new CreditsScreen());
-    else if (exitBtn.clicked()) exit();
+    if (mode != 0) return;
+    int i = hoveredRow();
+    if (i >= 0 && i <= 2) { target = i; mode = 1; animStart = millis(); }
+    else if (i == 3) exit();
   }
 }
