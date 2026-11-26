@@ -8,9 +8,12 @@ class TutorialSelectScreen extends Screen {
   RoomCam cam = new RoomCam();
   PFont pixelFont;
   int born;
+  int leaving = -1;                 // ficha pulsada que está creciendo (-1 = ninguna)
+  int leaveStart = 0;
+  final int LEAVE_MS = 500;
 
   TutorialSelectScreen() {
-    pixelFont = createFont("PressStart2P-Regular.ttf", 32);
+    pixelFont = uiFont;
     born = millis();
     cam.set(1);
   }
@@ -42,8 +45,10 @@ class TutorialSelectScreen extends Screen {
     float s = roomS(), ox = roomOX();
     cam.set(1);
     float al = constrain((millis() - born) / 400.0, 0, 1);   // el contenido aparece suave
+    float lp = leaving >= 0 ? constrain((millis() - leaveStart) / (float) LEAVE_MS, 0, 1) : 0;
+    al *= 1 - constrain(lp / 0.4, 0, 1);                     // al pulsar, el resto se atenúa
     int a = (int) (255 * al);
-    int hover = hoveredRow();
+    int hover = leaving >= 0 ? -1 : hoveredRow();
     boolean hBack = overBack();
 
     pushStyle();
@@ -55,7 +60,7 @@ class TutorialSelectScreen extends Screen {
     translate(ox, 0);
     scale(s);
 
-    stroke(34, 230, 255, 100 * al);
+    stroke(COL_CYAN, 100 * al);
     strokeWeight(1);
     line(124, 45, 256, 45);
 
@@ -69,7 +74,7 @@ class TutorialSelectScreen extends Screen {
       rect(x, y, w, h, 2);
 
       noStroke();
-      if (done) fill(63, 166, 107, a); else fill(255, 181, 90, a);
+      if (done) fill(63, 166, 107, a); else fill(COL_AMBER, a);
       rect(x + 2, y + 2, h - 4, h - 4, 2);
 
       if (done) {   // palomita a la derecha
@@ -88,11 +93,11 @@ class TutorialSelectScreen extends Screen {
 
     textAlign(CENTER, CENTER);
     textSize(8 * s * cam.cz);
-    fill(34, 230, 255, a);
+    fill(COL_CYAN, a);
     text("TUTORIAL", cam.x(ox + 190 * s), cam.y(36 * s));
 
     textSize(5 * s * cam.cz);
-    fill(143, 232, 245, a);
+    fill(COL_TEXT_SOFT, a);
     text("Practica los controles", cam.x(ox + 190 * s), cam.y(51 * s));
 
     for (int i = 0; i < tutorials.count(); i++) {
@@ -103,7 +108,7 @@ class TutorialSelectScreen extends Screen {
       // número
       textAlign(CENTER, CENTER);
       textSize(6 * s * cam.cz);
-      fill(26, 29, 61, a);
+      fill(COL_NAVY, a);
       text(str(i + 1), cam.x(ox + (x + 2 + (h - 4) / 2.0) * s), cam.y(cy * s));
 
       // nombre: se encoge solo si es largo, para que no se salga de la fila
@@ -118,18 +123,34 @@ class TutorialSelectScreen extends Screen {
 
     textSize(6 * s * cam.cz);
     textAlign(LEFT, CENTER);
-    if (hBack) fill(255, a); else fill(143, 232, 245, a);
+    if (hBack) fill(255, a); else fill(COL_TEXT_SOFT, a);
     text("< Volver", cam.x(ox + 126 * s), cam.y(130 * s));
 
     popStyle();
     textFont(normalFont, normalSize);
-    cursor((hover >= 0 || hBack) ? HAND : ARROW);
+
+    if (leaving >= 0) {   // la fila crece hasta cubrir la ventana
+      boolean done = progress.isCompleted(tutorials.idAt(leaving));
+      drawGrowRect(cam.x(ox + rowX(leaving) * s), cam.y(rowY(leaving) * s),
+                   rowW() * s * cam.cz, rowH() * s * cam.cz, lp,
+                   done ? COL_GREEN : COL_SLATE, COL_NAVY, 2 * s * cam.cz);
+      if (lp >= 1) launch();
+    }
+    cursor((leaving < 0 && (hover >= 0 || hBack)) ? HAND : ARROW);
+  }
+
+  void launch() {
+    int i = leaving;
+    leaving = -1;
+    goTo(new LevelScreen(tutorials, i));
   }
 
   void mousePressed() {
+    if (leaving >= 0) { launch(); return; }   // un click salta la animación
     int i = hoveredRow();
     if (i >= 0) {
-      goTo(new LevelScreen(tutorials, i));
+      leaving = i;
+      leaveStart = millis();
       return;
     }
     if (overBack()) goTo(new HomeScreen(true));   // zoom hacia atrás al cuarto

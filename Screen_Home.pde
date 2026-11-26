@@ -13,7 +13,7 @@
   HomeScreen() { this(false); }
 
   HomeScreen(boolean zoomOut) {
-    pixelFont = createFont("PressStart2P-Regular.ttf", 32);
+    pixelFont = uiFont;
     if (zoomOut) { mode = 2; animStart = millis(); }
   }
 
@@ -55,7 +55,7 @@
 
     // línea bajo el título
     cam.begin();
-    stroke(34, 230, 255, 100 * fade);
+    stroke(COL_CYAN, 100 * fade);
     strokeWeight(s);
     line(ox + 124 * s, 60 * s, ox + 256 * s, 60 * s);
     cam.end();
@@ -66,14 +66,14 @@
     textSize(9 * s * cam.cz);
 
     textAlign(CENTER, CENTER);
-    fill(34, 230, 255, a);
+    fill(COL_CYAN, a);
     text("SCREENED-OUT", cam.x(ox + 190 * s), cam.y(50 * s));
 
     textAlign(LEFT, CENTER);
     for (int i = 0; i < labels.length; i++) {
       boolean on = (i == sel);
       String txt = (on ? "> " : "  ") + labels[i];
-      color c = on ? color(255, 181, 90) : (i == 3 ? color(255, 122, 168) : color(143, 232, 245));
+      color c = on ? COL_AMBER : (i == 3 ? COL_PINK : COL_TEXT_SOFT);
       fill(red(c), green(c), blue(c), a);
       float x = cam.x(ox + 128 * s);
       float y = cam.y(lineY(i) * s);
@@ -81,7 +81,7 @@
 
       if (on && mode == 0 && (frameCount / 30) % 2 == 0) {
         float tw = textWidth(txt);
-        fill(255, 181, 90, a);
+        fill(COL_AMBER, a);
         rect(x + tw + 4 * s * cam.cz, y - 4 * s * cam.cz, 5 * s * cam.cz, 8 * s * cam.cz);
       }
     }

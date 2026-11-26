@@ -143,7 +143,7 @@ class Player {
     float y = py() - TILE_SIZE * 0.62;
     image(assets.dishDirty, x, y, s, s);
     if (count > 1) {
-      fill(30, 50, 100);
+      fill(COL_NAVY);
       noStroke();
       ellipse(x + s, y + 4, 18, 18);
       fill(255);

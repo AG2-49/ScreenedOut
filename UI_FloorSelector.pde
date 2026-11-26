@@ -59,10 +59,12 @@ class FloorSelector {
 
     // ----- Cabecera: piso que se está viendo -----
     boolean headHover = mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + HEAD_H;
+    fill(headHover || open ? COL_SLATE : COL_SCREEN, 240);
+    stroke(headHover || open ? COL_WHITE : COL_CYAN, 200);
+    strokeWeight(1.5);
+    rect(x, y, w, HEAD_H, UI_ROW_RADIUS);
     noStroke();
-    fill(0, headHover || open ? 205 : 170);
-    rect(x, y, w, HEAD_H, 6);
-    fill(255);
+    fill(COL_WHITE);
     text(nameOf(level, viewFloor), x + PAD, y + HEAD_H / 2.0 - 1);
     if (!viewingOther) image(assets.playerFaceIcon, x + w - PAD - 14 - ICON, y + (HEAD_H - ICON) / 2.0);
     textAlign(CENTER, CENTER);
@@ -75,9 +77,9 @@ class FloorSelector {
       textSize(11);
       String hint = "Personaje: " + nameOf(level, level.floor);
       float hw = textWidth(hint) + 16;
-      fill(0, 150);
-      rect(x, y + HEAD_H + GAP, hw, 20, 5);
-      fill(235);
+      fill(COL_SCREEN, 225);
+      rect(x, y + HEAD_H + GAP, hw, 20, UI_ROW_RADIUS);
+      fill(COL_TEXT_SOFT);
       text(hint, x + 8, y + HEAD_H + GAP + 9);
     }
 
@@ -89,13 +91,20 @@ class FloorSelector {
         boolean hover = mouseX >= x && mouseX <= x + w && mouseY >= ry && mouseY < ry + ROW_H;
         boolean shown = i == viewFloor;
         noStroke();
-        if (hover)      fill(255, 235);
-        else if (shown) fill(215, 228, 255, 235);
-        else            fill(0, 190);
-        rect(x, ry, w, ROW_H - 1, 5);
+        if (hover)      fill(COL_AMBER);
+        else if (shown) fill(COL_SLATE, 245);
+        else            fill(COL_SCREEN, 235);
+        rect(x, ry, w, ROW_H - 1, UI_ROW_RADIUS);
+        if (shown && !hover) {            // el piso que se está viendo lleva borde cian
+          noFill();
+          stroke(COL_CYAN, 200);
+          strokeWeight(1.5);
+          rect(x, ry, w, ROW_H - 1, UI_ROW_RADIUS);
+          noStroke();
+        }
 
         textAlign(LEFT, CENTER);
-        fill((hover || shown) ? color(25, 40, 90) : color(255));
+        fill(hover ? COL_NAVY : COL_WHITE);
         text(nameOf(level, i), x + PAD, ry + ROW_H / 2.0 - 1);
         if (i == level.floor) image(assets.playerFaceIcon, x + w - PAD - 14 - ICON, ry + (ROW_H - ICON) / 2.0 - 0.5);
       }

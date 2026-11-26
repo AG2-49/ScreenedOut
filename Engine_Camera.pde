@@ -51,13 +51,6 @@ class Camera {
     popMatrix();
 
     drawEdgeShadows();
-
-    pushStyle();
-    noFill();
-    stroke(0);
-    strokeWeight(2);
-    rect(area.x, area.y, area.w, area.h);
-    popStyle();
   }
 
   // ----- Entrada -----
@@ -142,8 +135,8 @@ void drawGradient(float x, float y, float w, float h, boolean horizontal, boolea
   int steps = (int) (horizontal ? w : h);
   for (int i = 0; i < steps; i++) {
     float t = i / (float) steps;
-    float alpha = reversed ? lerp(0, 70, t) : lerp(70, 0, t);
-    stroke(0, alpha);
+    float alpha = reversed ? lerp(0, 100, t) : lerp(100, 0, t);
+    stroke(COL_NAVY, alpha);
     if (horizontal) {
       line(x + i, y, x + i, y + h);
     } else {

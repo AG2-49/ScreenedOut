@@ -8,9 +8,12 @@ class LevelSelectScreen extends Screen {
   PFont pixelFont;
   boolean confirmReset = false;
   int born;
+  int leaving = -1;                 // ficha pulsada que está creciendo (-1 = ninguna)
+  int leaveStart = 0;
+  final int LEAVE_MS = 500;
 
   LevelSelectScreen() {
-    pixelFont = createFont("PressStart2P-Regular.ttf", 32);
+    pixelFont = uiFont;
     born = millis();
   }
 
@@ -43,9 +46,11 @@ class LevelSelectScreen extends Screen {
     float s = roomS(), ox = roomOX();
     cam.set(1);
     float al = constrain((millis() - born) / 400.0, 0, 1);   // el contenido aparece suave
+    float lp = leaving >= 0 ? constrain((millis() - leaveStart) / (float) LEAVE_MS, 0, 1) : 0;
+    al *= 1 - constrain(lp / 0.4, 0, 1);                     // al pulsar, el resto se atenúa
     int a = (int) (255 * al);
 
-    int hover = hoveredTile();
+    int hover = leaving >= 0 ? -1 : hoveredTile();
     boolean hBack = overBack(), hReset = overReset();
     boolean tileClickable = hover >= 0 && progress.isUnlocked(hover);
 
@@ -58,7 +63,7 @@ class LevelSelectScreen extends Screen {
     translate(ox, 0);
     scale(s);
 
-    stroke(34, 230, 255, 100 * al);
+    stroke(COL_CYAN, 100 * al);
     strokeWeight(1);
     line(124, 50, 256, 50);
 
@@ -70,7 +75,7 @@ class LevelSelectScreen extends Screen {
 
       if (!unlocked)  { fill(22, 38, 63, a);    stroke(45, 74, 99, a); }
       else if (done)  { fill(63, 166, 107, a);  stroke(160, 230, 190, a); }
-      else            { fill(255, 181, 90, a);  stroke(255, 224, 176, a); }
+      else            { fill(COL_AMBER, a);  stroke(255, 224, 176, a); }
       if (hv) stroke(255, a);
       strokeWeight(hv ? 2 : 1);
       rect(x, y, w, h, 3);
@@ -85,7 +90,7 @@ class LevelSelectScreen extends Screen {
         arc(x + w - 7.5, y + h - 7, 4, 4, PI, TWO_PI);
       }
       if (done) {               // palomita
-        stroke(26, 29, 61, a);
+        stroke(COL_NAVY, a);
         strokeWeight(1.5);
         line(x + w - 12, y + h - 6, x + w - 9.5, y + h - 3.5);
         line(x + w - 9.5, y + h - 3.5, x + w - 5, y + h - 9);
@@ -100,12 +105,12 @@ class LevelSelectScreen extends Screen {
 
     textAlign(CENTER, CENTER);
     textSize(8 * s * cam.cz);
-    fill(34, 230, 255, a);
+    fill(COL_CYAN, a);
     text("NIVELES", cam.x(ox + 190 * s), cam.y(42 * s));
 
     textSize(11 * s * cam.cz);
     for (int i = 0; i < levels.count(); i++) {
-      color c = progress.isUnlocked(i) ? color(26, 29, 61) : color(74, 106, 133);
+      color c = progress.isUnlocked(i) ? COL_NAVY : color(74, 106, 133);
       fill(red(c), green(c), blue(c), a);
       float cx = tileX(i) + tileW() / 2.0;
       float cy = tileY(i) + tileH() / 2.0 - 2;
@@ -114,24 +119,40 @@ class LevelSelectScreen extends Screen {
 
     textSize(6 * s * cam.cz);
     textAlign(LEFT, CENTER);
-    if (hBack) fill(255, a); else fill(143, 232, 245, a);
+    if (hBack) fill(255, a); else fill(COL_TEXT_SOFT, a);
     text("< Volver", cam.x(ox + 126 * s), cam.y(130 * s));
 
     textAlign(RIGHT, CENTER);
-    if (confirmReset) fill(255, 181, 90, a);
+    if (confirmReset) fill(COL_AMBER, a);
     else if (hReset)  fill(255, 190, 215, a);
-    else              fill(255, 122, 168, a);
+    else              fill(COL_PINK, a);
     text(confirmReset ? "¿Seguro?" : "Reiniciar", cam.x(ox + 256 * s), cam.y(130 * s));
 
     popStyle();
     textFont(normalFont, normalSize);
-    cursor((tileClickable || hBack || hReset) ? HAND : ARROW);
+
+    if (leaving >= 0) {   // la ficha crece hasta cubrir la ventana
+      boolean done = progress.isCompleted(levels.idAt(leaving));
+      drawGrowRect(cam.x(ox + tileX(leaving) * s), cam.y(tileY(leaving) * s),
+                   tileW() * s * cam.cz, tileH() * s * cam.cz, lp,
+                   done ? COL_GREEN : COL_AMBER, COL_NAVY, 3 * s * cam.cz);
+      if (lp >= 1) launch();
+    }
+    cursor((leaving < 0 && (tileClickable || hBack || hReset)) ? HAND : ARROW);
+  }
+
+  void launch() {
+    int i = leaving;
+    leaving = -1;
+    goTo(new LevelScreen(i));
   }
 
   void mousePressed() {
+    if (leaving >= 0) { launch(); return; }   // un click salta la animación
     int i = hoveredTile();
     if (i >= 0 && progress.isUnlocked(i)) {
-      goTo(new LevelScreen(i));
+      leaving = i;
+      leaveStart = millis();
       return;
     }
     if (overBack()) {

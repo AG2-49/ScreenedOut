@@ -17,8 +17,8 @@ class NoteViewer {
   color ink   = color(102, 57, 49);
 
   int pad = 26;
-  int lineH = 22;
-  float textSz = 16;
+  int lineH = 26;
+  float textSz = 21;
 
   Note shown = null;          // para volver al inicio del texto al abrir otra nota
   float scrollY = 0;
@@ -33,7 +33,8 @@ class NoteViewer {
     float bw = 170, bh = 40;
     closeBtn = new UIButton(area.x + (area.w - bw) / 2.0, area.y + area.h - pad - bh, bw, bh, "Cerrar nota");
     closeBtn.colors(rule, color(196, 140, 86), ink, color(60, 30, 25));
-    closeBtn.textSz = 16;
+    closeBtn.textSz = 22;
+    closeBtn.font = handFont;
   }
 
   boolean isOpen() { return level.openNote != null; }
@@ -55,6 +56,9 @@ class NoteViewer {
   void draw() {
     Note n = level.openNote;
     if (n == null) return;
+    textSize(g.textSize);           // asegura una fuente activa que restaurar al final
+    PFont prevFont = g.textFont;
+    float prevSize = g.textSize;
     if (n != shown) {
       shown = n;
       scrollY = 0;
@@ -65,7 +69,7 @@ class NoteViewer {
 
     // Papel
     fill(paper);
-    stroke(0);
+    stroke(ink);
     strokeWeight(2);
     rect(area.x, area.y, area.w, area.h);
 
@@ -77,13 +81,15 @@ class NoteViewer {
     image(assets.note, x0, y0 - 4, 40, 40);
     fill(ink);
     textAlign(LEFT, CENTER);
-    textSize(24);
-    text("Nota", x0 + 52, y0 + 16);
+    textFont(handFont);
+    textSize(32);
+    text("Nota", x0 + 52, y0 + 14);
     stroke(rule);
     strokeWeight(2);
     line(x0, y0 + 44, x0 + w, y0 + 44);
 
     // Texto (recortado a su región, con scroll)
+    textFont(handFont);
     textSize(textSz);
     ArrayList<String> lines = wrapText(n.text, w - 8);
     contentH = lines.size() * lineH;
@@ -113,6 +119,7 @@ class NoteViewer {
 
     closeBtn.draw();
     popStyle();
+    textFont(prevFont, prevSize);
   }
 
   // ============================================================

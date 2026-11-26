@@ -1,5 +1,5 @@
 // ============================================================
-//  Main.pde — Punto de entrada
+//  ScreenedOut.pde — Punto de entrada
 //  Solo inicializa los sistemas globales y reparte los eventos
 //  a la pantalla activa. La lógica vive en cada módulo (ver README.md).
 // ============================================================
@@ -9,6 +9,7 @@ void settings() {
 }
 
 void setup() {
+  initTheme();
   assets = new Assets();
   assets.load();
 
@@ -40,7 +41,7 @@ void draw() {
 void drawMuteNotice() {
   if (!audio.muted) return;
   pushStyle();
-  fill(150);
+  fill(COL_TEXT_SOFT, 170);
   textAlign(CENTER, CENTER);
   textSize(11);
   text("Sonido desactivado (M para activarlo)", WINDOW_W / 2.0, PANEL_MARGIN / 2.0);

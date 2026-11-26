@@ -13,11 +13,11 @@ class CreditsScreen extends Screen {
 
   // un color por persona (si agregan más gente, los colores se repiten)
   final int[] NAME_COLORS = {
-    color(255, 181, 90),    // naranja
-    color(255, 122, 168),   // rosa
+    COL_AMBER,    // naranja
+    COL_PINK,   // rosa
     color(63, 224, 122),    // verde
     color(176, 140, 255),   // morado
-    color(34, 230, 255),    // cian
+    COL_CYAN,    // cian
     color(246, 240, 120)    // amarillo
   };
 
@@ -28,7 +28,7 @@ class CreditsScreen extends Screen {
   final float VIS_TOP = 52, VIS_BOTTOM = 120;    // zona visible de los créditos
 
   CreditsScreen() {
-    pixelFont = createFont("PressStart2P-Regular.ttf", 32);
+    pixelFont = uiFont;
     born = millis();
     cam.set(1);
   }
@@ -55,7 +55,7 @@ class CreditsScreen extends Screen {
 
     // línea bajo el título
     cam.begin();
-    stroke(34, 230, 255, 100 * al);
+    stroke(COL_CYAN, 100 * al);
     strokeWeight(s);
     line(ox + 124 * s, 45 * s, ox + 256 * s, 45 * s);
     cam.end();
@@ -65,7 +65,7 @@ class CreditsScreen extends Screen {
 
     textAlign(CENTER, CENTER);
     textSize(8 * s * cam.cz);
-    fill(34, 230, 255, a);
+    fill(COL_CYAN, a);
     text("CRÉDITOS", cam.x(ox + 190 * s), cam.y(36 * s));
 
     // créditos que suben solos (se recortan a la pantalla del monitor)
@@ -92,11 +92,11 @@ class CreditsScreen extends Screen {
     // botones
     textSize(5 * s * cam.cz);
     textAlign(LEFT, CENTER);
-    if (hBack) fill(255, a); else fill(143, 232, 245, a);
+    if (hBack) fill(255, a); else fill(COL_TEXT_SOFT, a);
     text("< Volver", cam.x(ox + 126 * s), cam.y(130 * s));
 
     textAlign(RIGHT, CENTER);
-    if (hBehind) fill(255, a); else fill(255, 181, 90, a);
+    if (hBehind) fill(255, a); else fill(COL_AMBER, a);
     text("Detrás del código", cam.x(ox + 258 * s), cam.y(130 * s));
 
     popStyle();
@@ -120,7 +120,7 @@ float scrW() { return width - 88; }
 float scrH() { return height - 76; }
 
 void drawMonitorPanel() {
-  background(26, 29, 61);
+  background(COL_NAVY);
   stroke(90, 90, 80);
   strokeWeight(3);
   fill(217, 210, 192);
@@ -181,7 +181,7 @@ class BehindScreen extends Screen {
   boolean hoverBack = false;
 
   BehindScreen() {
-    pixelFont = createFont("PressStart2P-Regular.ttf", 32);
+    pixelFont = uiFont;
     bodyFont  = createFont("SansSerif", 18);
   }
 
@@ -204,9 +204,9 @@ class BehindScreen extends Screen {
     textFont(pixelFont);
     textSize(18);
     textAlign(LEFT, CENTER);
-    fill(34, 230, 255);
+    fill(COL_CYAN);
     text(TITULO, x0, scrY() + 34);
-    stroke(34, 230, 255, 100);
+    stroke(COL_CYAN, 100);
     strokeWeight(2);
     line(x0, scrY() + 60, scrX() + scrW() - 28, scrY() + 60);
     noStroke();
@@ -221,7 +221,7 @@ class BehindScreen extends Screen {
     float y = scrY() + 84;
     text(CONCEPTO, x0, y, colW, 220);
     y += countLinesFor(CONCEPTO, colW) * 26 + 22;
-    fill(255, 181, 90);
+    fill(COL_AMBER);
     text(HINT, x0, y, colW, 120);
 
     // botones de temas
@@ -234,12 +234,12 @@ class BehindScreen extends Screen {
       if (over) hoverTema = i;
 
       strokeWeight(2);
-      if (over) { fill(255, 181, 90); stroke(255, 224, 176); }
+      if (over) { fill(COL_AMBER); stroke(255, 224, 176); }
       else      { fill(22, 38, 63);   stroke(45, 74, 99); }
       rect(bx, by, bw, bh, 8);
 
       noStroke();
-      if (over) fill(26, 29, 61); else fill(143, 232, 245);
+      if (over) fill(COL_NAVY); else fill(COL_TEXT_SOFT);
       textAlign(CENTER, CENTER);
       text(TEMAS[i], bx + bw / 2.0, by + bh / 2.0);
     }
@@ -247,7 +247,7 @@ class BehindScreen extends Screen {
     // volver
     textFont(pixelFont);
     textSize(12);
-    hoverBack = pixelLink("< Volver", x0, scrY() + scrH() - 28, LEFT, color(143, 232, 245), color(255));
+    hoverBack = pixelLink("< Volver", x0, scrY() + scrH() - 28, LEFT, COL_TEXT_SOFT, color(255));
 
     popStyle();
     textFont(normalFont, normalSize);
@@ -409,7 +409,7 @@ class TopicScreen extends Screen {
 
   TopicScreen(int idx) {
     this.idx = idx;
-    pixelFont = createFont("PressStart2P-Regular.ttf", 32);
+    pixelFont = uiFont;
     bodyFont  = createFont("SansSerif", 15);
     codeFont  = createFont("Monospaced", 12);
   }
@@ -435,9 +435,9 @@ class TopicScreen extends Screen {
     textFont(pixelFont);
     textSize(18);
     textAlign(LEFT, CENTER);
-    fill(34, 230, 255);
+    fill(COL_CYAN);
     text(TEMAS[idx].toUpperCase(), x0, scrY() + 34);
-    stroke(34, 230, 255, 100);
+    stroke(COL_CYAN, 100);
     strokeWeight(2);
     line(x0, scrY() + 60, xr, scrY() + 60);
     noStroke();
@@ -500,7 +500,7 @@ class TopicScreen extends Screen {
     // pie: volver a los temas, anterior / siguiente y contador
     textFont(pixelFont);
     textSize(11);
-    int cyan = color(143, 232, 245), white = color(255);
+    int cyan = COL_TEXT_SOFT, white = color(255);
     float fy = scrY() + scrH() - 28;
     hoverTemas = pixelLink("< Temas", x0, fy, LEFT, cyan, white);
     hoverNext  = pixelLink("Siguiente >", xr, fy, RIGHT, cyan, white);
@@ -508,7 +508,7 @@ class TopicScreen extends Screen {
     hoverPrev  = pixelLink("< Anterior", xr - nextW - 30, fy, RIGHT, cyan, white);
 
     textAlign(CENTER, CENTER);
-    fill(255, 122, 168);
+    fill(COL_PINK);
     text((idx + 1) + " / " + TEMAS.length, scrX() + scrW() / 2.0, fy);
 
     boolean overCode = mouseX > cx && mouseX < cx + cw && mouseY > cy && mouseY < cy + ch;

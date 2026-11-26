@@ -32,13 +32,13 @@ class TaskPanel {
   float contentH = 0;                  // alto del contenido, medido en el último dibujo
 
   int pad = 14;
-  int lineH = 16;
+  int lineH = 18;
   int boxSize = 14;
 
   TaskPanel(Rect area, Level level) {
     this.area = area;
     this.level = level;
-    pixelFont = createFont("PressStart2P-Regular.ttf", 32);
+    pixelFont = uiFont;
   }
 
   void draw() {
@@ -99,19 +99,19 @@ class TaskPanel {
   // Título con letra pixel y una pastilla con el avance (ej. 1/2)
   float drawHeading(String label, String badge, float x, float y, float w) {
     noStroke();
-    textFont(pixelFont);
-    textSize(13);
+    textFont(handFont);
+    textSize(22);
     textAlign(LEFT, CENTER);
     fill(ink);
-    text(label, x, y + 12);
+    text(label, x, y + 11);
 
     if (badge.length() > 0) {
       fill(ink);
       rect(x + w - 40, y + 3, 40, 18, 9);
-      textFont(normalFont, 12);
+      textFont(handFont, 16);
       textAlign(CENTER, CENTER);
       fill(paper);
-      text(badge, x + w - 20, y + 11);
+      text(badge, x + w - 20, y + 10);
     }
 
     stroke(rule);
@@ -122,7 +122,7 @@ class TaskPanel {
 
   float drawTask(Task t, float x, float y, float w) {
     boolean done = t.isDone();
-    textFont(normalFont, 13);
+    textFont(handFont, 17);
     ArrayList<String> lines = wrap(t.label(), w - boxSize - 10);
     float h = max(boxSize + 4, lines.size() * lineH);
 
@@ -167,7 +167,7 @@ class TaskPanel {
 
   // Nota adhesiva con chincheta: título "Notas n/m" y el texto de las notas ya leídas
   float drawNotes(float x, float y, float w) {
-    textFont(normalFont, 13);
+    textFont(handFont, 17);
 
     // primero se mide lo que va dentro
     ArrayList<ArrayList<String>> all = new ArrayList<ArrayList<String>>();
@@ -198,14 +198,14 @@ class TaskPanel {
     noStroke();
     fill(stickyInk);
     textAlign(LEFT, TOP);
-    textFont(normalFont, 15);
+    textFont(handFont, 20);
     text("Notas  " + level.notesRead() + "/" + level.notes.size(), x + 6, y + 14);
     stroke(stickyLine);
     strokeWeight(1);
     line(x + 6, y + 36, x + w - 6, y + 36);
 
     float cy = y + 44;
-    textFont(normalFont, 13);
+    textFont(handFont, 17);
     textAlign(LEFT, TOP);
     if (all.isEmpty()) {
       stroke(stickyLine);

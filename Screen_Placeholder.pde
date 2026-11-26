@@ -14,7 +14,7 @@ class PlaceholderScreen extends Screen {
 
   void draw() {
     pushStyle();
-    fill(30, 50, 100);
+    fill(COL_TEXT_SOFT);
     textAlign(CENTER, CENTER);
     textSize(32);
     text(title, WINDOW_W / 2.0, 100);

@@ -18,17 +18,20 @@ class ClockIntro {
   final int CLOCK_ADVANCE_MS = 3000;   // duración del avance (con la pausa final ≈ lo que dura ClockTick)
   int advanceMs = CLOCK_ADVANCE_MS;
   int holdMs = 900;          // pausa mostrando la hora final
+  float zoom = 1.6;          // el reloj es el protagonista de la apertura: se dibuja más grande que el resto de la interfaz
+  int endMs = -1;            // cuándo terminó (para el fundido de salida)
+  final int FADE_MS = 350;   // fundido de entrada y de salida
 
   // Segmentos por dígito: bits a=1 (arriba), b=2 (arriba der.), c=4 (abajo der.),
   // d=8 (abajo), e=16 (abajo izq.), f=32 (arriba izq.), g=64 (medio)
   int[] SEGMENTS = {63, 6, 91, 79, 102, 109, 125, 7, 127, 111};
 
   // Paleta
-  color back  = color(24, 27, 40);
-  color lit   = color(130, 235, 255);
-  color glow  = color(130, 235, 255, 45);
+  color back  = COL_NAVY;
+  color lit   = COL_CYAN;
+  color glow  = color(34, 230, 255, 45);
   color ghost = color(255, 255, 255, 20);
-  color soft  = color(150, 160, 185);
+  color soft  = COL_TEXT_SOFT;
 
   ClockIntro(Rect area, Level level) {
     this.area = area;
@@ -43,8 +46,12 @@ class ClockIntro {
   void finish() {
     if (finished) return;
     finished = true;
+    endMs = millis();
     audio.stop("ClockTick");
   }
+
+  // ¿Sigue visible el fundido de salida?
+  boolean fading() { return endMs >= 0 && millis() - endMs < FADE_MS; }
 
   // Se llama cada frame.
   void update() {
@@ -58,6 +65,7 @@ class ClockIntro {
 
   // Minutos (desde las 0:00) que marca el reloj ahora mismo.
   int shownMinutes() {
+    if (startMs < 0) return level.clockFrom;   // aún no ha empezado (p. ej. mientras entra la pantalla)
     float t = constrain((millis() - startMs) / (float) advanceMs, 0, 1);
     // In-out cúbico: lento al principio, muy rápido en medio, lento al final
     float e = t < 0.5 ? 4 * t * t * t : 1 - pow(-2 * t + 2, 3) / 2;
@@ -68,8 +76,7 @@ class ClockIntro {
   //  DIBUJO
   // ============================================================
   void draw() {
-    if (finished) return;
-    if (startMs < 0) startMs = millis();
+    if (finished && !fading()) return;
 
     int total = shownMinutes() % (24 * 60);
     int h24 = total / 60;
@@ -80,9 +87,14 @@ class ClockIntro {
 
     pushStyle();
     fill(back);
-    stroke(0);
-    strokeWeight(2);
+    noStroke();
     rect(area.x, area.y, area.w, area.h);
+
+    // Todo el contenido se agranda alrededor del centro del área
+    pushMatrix();
+    translate(area.x + area.w / 2.0, area.y + area.h / 2.0);
+    scale(zoom);
+    translate(-(area.x + area.w / 2.0), -(area.y + area.h / 2.0));
 
     // Medidas del display
     float dw = 52, dh = 96, t = 10;
@@ -123,17 +135,29 @@ class ClockIntro {
       fill(soft);
       textAlign(CENTER, TOP);
       textSize(16);
-      ArrayList<String> lines = wrapText(level.clockText, area.w - 80);
+      ArrayList<String> lines = wrapText(level.clockText, min(area.w / zoom - 80, 520));
       for (int i = 0; i < lines.size(); i++) {
         text(lines.get(i), area.x + area.w / 2.0, y + dh + 62 + i * 22);
       }
     }
 
-    // Pista para saltar
+    popMatrix();
+
+    // Pista para saltar (sin agrandar)
     fill(soft, 150);
     textAlign(CENTER, BOTTOM);
     textSize(12);
     text("Clic para saltar", area.x + area.w / 2.0, area.y + area.h - 12);
+
+    // Fundido: entra desde el navy y sale hacia él
+    float aIn  = startMs < 0 ? 1 : 1 - constrain((millis() - startMs) / (float) FADE_MS, 0, 1);
+    float aOut = finished ? constrain((millis() - endMs) / (float) FADE_MS, 0, 1) : 0;
+    float av = max(aIn, aOut);
+    if (av > 0) {
+      fill(back, 255 * av);
+      noStroke();
+      rect(area.x, area.y, area.w, area.h);
+    }
 
     popStyle();
   }

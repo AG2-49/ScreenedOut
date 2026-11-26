@@ -33,6 +33,13 @@ class LevelScreen extends Screen {
   int playerFloorSeen = 0;         // último piso del personaje que ya se atendió (detecta escaleras)
   FloorSelector floorSelector;
 
+  // Transición: 0 ninguna, 1 entrando (paneles deslizan hacia dentro), 2 saliendo,
+  // 3 reloj de apertura a pantalla completa (si el nivel lo tiene; al terminar pasa a 1).
+  int transMode = 0;
+  int transStart = 0;
+  int transDur = 600;
+  int leaveAction = 0;             // al terminar de salir: 1 = menú principal, 2 = siguiente nivel
+
   LevelScreen(int levelIndex) {
     this(levels, levelIndex);
   }
@@ -49,19 +56,57 @@ class LevelScreen extends Screen {
     panel = new ProgramPanel(progArea, program, runner, this);
     taskPanel = new TaskPanel(taskArea, level);
     noteViewer = new NoteViewer(mapArea, level);
-    clock = new ClockIntro(mapArea, level);
+    clock = new ClockIntro(new Rect(0, 0, WINDOW_W, WINDOW_H), level);   // la apertura ocupa toda la ventana
     floorSelector = new FloorSelector(mapArea);
 
     // Botón de salida al menú principal, arriba a la derecha del panel de programación
     menuBtn = new UIButton(progArea.x + progArea.w - 15 - 90, progArea.y + 15, 90, 32, "Menú");
-    menuBtn.textSz = 14;
+    menuBtn.textSz = 10;
 
     // Botón que aparece sobre el mapa al completar el nivel (encima del banner)
     float nw = 220, nh = 42;
     nextBtn = new UIButton(mapArea.x + (mapArea.w - nw) / 2.0, mapArea.y + mapArea.h - 34 - nh - 12, nw, nh, nextLabel());
-    nextBtn.colors(color(190, 235, 195), color(160, 225, 170), color(50, 130, 70), color(20, 80, 40));
+    nextBtn.textSz = 10;
 
     resetLevel();
+  }
+
+  // Variante corta de la entrada (al venir de «Siguiente»).
+  LevelScreen quick() {
+    transDur = 250;
+    return this;
+  }
+
+  void onEnter() {
+    transMode = clock.isActive() ? 3 : 1;
+    transStart = millis();
+  }
+
+  void beginLeave(int action, int dur) {
+    if (transMode == 2) return;
+    transMode = 2;
+    transStart = millis();
+    transDur = dur;
+    leaveAction = action;
+  }
+
+  float transT() { return constrain((millis() - transStart) / (float) transDur, 0, 1); }
+
+  // Cuánto está «en su sitio» cada elemento (0 = fuera, 1 = en su sitio): k 0 = tareas, 1 = mapa, 2 = programa.
+  // Entrando salen de izquierda a derecha, escalonados; saliendo, al revés.
+  float elemShown(int k) {
+    if (transMode == 0) return 1;
+    float local = constrain((transT() - (transMode == 1 ? k : 2 - k) * 0.13) / 0.74, 0, 1);
+    return transMode == 1 ? easeOutCubic(local) : 1 - easeInCubic(local);
+  }
+
+  void endTransition() {
+    int mode = transMode, action = leaveAction;
+    transMode = 0;
+    leaveAction = 0;
+    if (mode != 2) return;
+    if (action == 1) goTo(new HomeScreen(true));
+    else if (action == 2) doNext();
   }
 
   // Restaura jugador, nivel y cámara a su estado inicial.
@@ -114,13 +159,29 @@ class LevelScreen extends Screen {
   }
 
   void goNext() {
-    if (hasNext()) goTo(new LevelScreen(catalog, levelIndex + 1));
+    beginLeave(2, 250);
+  }
+
+  void doNext() {
+    if (hasNext()) goTo(new LevelScreen(catalog, levelIndex + 1).quick());
     else if (isTutorial()) goTo(new LevelSelectScreen());
     else goTo(new CreditsScreen());
   }
 
   // ----- Ciclo -----
   void update() {
+    if (transMode == 3) {            // el reloj va solo; al apagarse entran los paneles
+      clock.update();
+      if (!clock.isActive() && !clock.fading()) {
+        transMode = 1;
+        transStart = millis();
+      }
+      return;
+    }
+    if (transMode != 0) {            // durante la transición el juego espera (el reloj arranca al terminar la entrada)
+      if (transT() >= 1) endTransition();
+      return;
+    }
     clock.update();
     runner.update();
     player.update();
@@ -190,15 +251,18 @@ class LevelScreen extends Screen {
   }
 
   void draw() {
+    if (transMode == 3) {            // reloj de apertura: solo, a pantalla completa
+      clock.draw();
+      cursor(ARROW);
+      return;
+    }
+
     // La caja de «en rango» pertenece al piso del personaje: no se dibuja al mirar otro
     renderer.hintObj = viewingPlayerFloor() ? hintObj : null;
     renderer.hintAlpha = hintAlpha();
     renderer.hoverObj = hoverObj;
 
-    if (clock.isActive()) {
-      // Al empezar el nivel, el reloj ocupa el lugar del mapa
-      clock.draw();
-    } else if (noteViewer.isOpen()) {
+    if (noteViewer.isOpen()) {
       // Con una nota abierta, su contenido reemplaza al mapa
       noteViewer.draw();
     } else {
@@ -215,7 +279,7 @@ class LevelScreen extends Screen {
       if (!viewingPlayerFloor()) {          // velo suave: «esto es otro piso, el personaje no está aquí»
         pushStyle();
         noStroke();
-        fill(20, 30, 70, 40);
+        fill(COL_NAVY, 80);
         rect(mapArea.x, mapArea.y, mapArea.w, mapArea.h);
         popStyle();
       }
@@ -224,11 +288,28 @@ class LevelScreen extends Screen {
       if (showNext()) nextBtn.draw();
     }
 
+    float eT = elemShown(0), eM = elemShown(1), eP = elemShown(2);
+    if (eM < 1) {                      // el mapa aparece / se desvanece
+      pushStyle();
+      noStroke();
+      fill(COL_NAVY, 255 * (1 - eM));
+      rect(mapArea.x, mapArea.y, mapArea.w, mapArea.h);
+      popStyle();
+    }
+
+    pushMatrix();
+    translate(-(taskArea.x + taskArea.w + 12) * (1 - eT), 0);
     taskPanel.draw();
+    popMatrix();
+
+    pushMatrix();
+    translate((WINDOW_W - progArea.x + 12) * (1 - eP), 0);
     panel.draw();
     menuBtn.draw();
+    popMatrix();
 
-    updateCursor();
+    if (transMode != 0) cursor(ARROW);
+    else updateCursor();
   }
 
   // Cursor según lo que se pueda arrastrar bajo el mouse.
@@ -250,11 +331,22 @@ class LevelScreen extends Screen {
   }
 
   // Mensaje sobre el mapa: victoria, caída o aviso del último objeto usado.
+  // Franja navy con una línea de color arriba: cian (aviso), rosa (caída) o verde (completado).
   void drawBanner() {
     String msg = "";
-    if (level.completed)           msg = isTutorial() ? "¡Tutorial completado!" : "¡Nivel completado!";
-    else if (player.fell)          msg = "Caíste en un hueco. Pulsa «Correr» para reintentar.";
-    else msg = level.activeMessage();
+    color accent = COL_CYAN;
+    color ink = COL_WHITE;
+    if (level.completed) {
+      msg = isTutorial() ? "¡Tutorial completado!" : "¡Nivel completado!";
+      accent = COL_GREEN;
+      ink = COL_GREEN_SOFT;
+    } else if (player.fell) {
+      msg = "Caíste en un hueco. Pulsa «Correr» para reintentar.";
+      accent = COL_PINK;
+      ink = COL_PINK;
+    } else {
+      msg = level.activeMessage();
+    }
     if (msg.length() == 0) {
       // Sin avisos, los tutoriales muestran su ayuda
       if (level.hint.length() > 0) drawTutorialHint(level.hint);
@@ -263,13 +355,16 @@ class LevelScreen extends Screen {
 
     pushStyle();
     float bh = 34;
-    fill(0, 170);
+    float top = mapArea.y + mapArea.h - bh;
     noStroke();
-    rect(mapArea.x, mapArea.y + mapArea.h - bh, mapArea.w, bh);
-    fill(255);
+    fill(COL_SCREEN, 235);
+    rect(mapArea.x, top, mapArea.w, bh);
+    fill(accent);
+    rect(mapArea.x, top, mapArea.w, 2);
+    fill(ink);
     textAlign(CENTER, CENTER);
     textSize(13);
-    text(msg, mapArea.x + mapArea.w / 2.0, mapArea.y + mapArea.h - bh / 2.0);
+    text(msg, mapArea.x + mapArea.w / 2.0, top + bh / 2.0 + 1);
     popStyle();
   }
 
@@ -281,13 +376,15 @@ class LevelScreen extends Screen {
     float lh = 17;
     float bh = lines.size() * lh + 16;
     float top = mapArea.y + mapArea.h - bh;
-    fill(0, 170);
     noStroke();
+    fill(COL_SCREEN, 235);
     rect(mapArea.x, top, mapArea.w, bh);
-    fill(255);
+    fill(COL_CYAN);
+    rect(mapArea.x, top, mapArea.w, 2);
+    fill(COL_WHITE);
     textAlign(LEFT, TOP);
     for (int i = 0; i < lines.size(); i++) {
-      text(lines.get(i), mapArea.x + 12, top + 8 + i * lh);
+      text(lines.get(i), mapArea.x + 12, top + 9 + i * lh);
     }
     popStyle();
   }
@@ -295,8 +392,16 @@ class LevelScreen extends Screen {
   // ----- Entrada -----
   // Con el reloj o una nota abiertos solo responden: el botón de cerrar (o saltar), «Menú» y los desplazamientos.
   void mousePressed() {
+    if (transMode == 3) {            // reloj de apertura: un click lo salta
+      clock.skip();
+      return;
+    }
+    if (transMode != 0) {            // un click salta la animación
+      transStart = millis() - transDur - 1;
+      return;
+    }
     if (menuBtn.clicked()) {
-      goTo(new HomeScreen());
+      beginLeave(1, 400);
       return;
     }
     if (clock.isActive()) {
@@ -321,18 +426,21 @@ class LevelScreen extends Screen {
   }
 
   void mouseDragged() {
+    if (transMode != 0) return;
     camera.mouseDragged();
     panel.mouseDragged();
     noteViewer.mouseDragged();
   }
 
   void mouseReleased() {
+    if (transMode != 0) return;
     camera.mouseReleased();
     panel.mouseReleased();
     noteViewer.mouseReleased();
   }
 
   void mouseWheel(int amount) {
+    if (transMode != 0) return;
     taskPanel.mouseWheel(amount);
     panel.mouseWheel(amount);
     noteViewer.mouseWheel(amount);
@@ -340,6 +448,11 @@ class LevelScreen extends Screen {
 
   // Movimiento manual con flechas / WASD y E para interactuar (útil para probar niveles)
   void keyPressed() {
+    if (transMode == 3) {
+      if (key == ENTER || key == RETURN || key == ' ') clock.skip();
+      return;
+    }
+    if (transMode != 0) return;
     if (clock.isActive()) {
       if (key == ENTER || key == RETURN || key == ' ') clock.skip();
       return;

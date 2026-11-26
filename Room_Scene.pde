@@ -39,7 +39,7 @@ class RoomCam {
 
 void drawRoom(RoomCam cam) {
   float s = roomS(), ox = roomOX();
-  background(26, 29, 61);
+  background(COL_NAVY);
 
   cam.begin();
 
@@ -49,7 +49,7 @@ void drawRoom(RoomCam cam) {
 
   fill(139, 90, 60);
   rect(0, 170 * s, width, height - 170 * s);
-  fill(34, 230, 255);
+  fill(COL_CYAN);
   rect(0, 169 * s, width, 2 * s);
 
   pushMatrix();
@@ -58,9 +58,9 @@ void drawRoom(RoomCam cam) {
 
   // lámpara
   noStroke();
-  fill(255, 181, 90, 34);
+  fill(COL_AMBER, 34);
   ellipse(60, 110, 88, 88);
-  fill(255, 181, 90);
+  fill(COL_AMBER);
   quad(46, 100, 74, 100, 68, 82, 52, 82);
   stroke(154, 107, 67);
   strokeWeight(3);

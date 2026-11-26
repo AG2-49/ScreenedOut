@@ -42,20 +42,19 @@ class ProgramPanel {
     float bw = area.w - 30;
 
     clearBtn = new UIButton(bx, area.y + area.h - bottomBtnH * 2 - bottomBtnGap - 15, bw, bottomBtnH, "Limpiar todo");
-    clearBtn.colors(color(245, 180, 170), color(240, 150, 140), color(150, 60, 50), color(100, 30, 25));
-    clearBtn.textSz = 14;
+    clearBtn.danger();
 
-    runBtn = new UIButton(bx, area.y + area.h - bottomBtnH - 15, bw, bottomBtnH, "▶ Correr");
-    runBtn.colors(color(140, 215, 160), color(120, 200, 140), color(30, 100, 60), color(20, 60, 35));
-    runBtn.disabledFill = color(200);
-    runBtn.disabledText = color(20, 60, 35);
-    runBtn.textSz = 16;
+    runBtn = new UIButton(bx, area.y + area.h - bottomBtnH - 15, bw, bottomBtnH, "Correr");
+    runBtn.primary();
+    runBtn.playIcon = true;
+    runBtn.textSz = 12;
   }
 
   void refreshButtons() {
     clearBtn.enabled = !runner.running && !program.isEmpty();
     runBtn.enabled = !runner.running;
-    runBtn.label = runner.running ? "Ejecutando…" : "▶ Correr";
+    runBtn.label = runner.running ? "Ejecutando..." : "Correr";
+    runBtn.playIcon = !runner.running;
   }
 
   // ----- Geometría de la lista -----
@@ -120,10 +119,7 @@ class ProgramPanel {
     refreshButtons();
     pushStyle();
 
-    noFill();
-    stroke(0);
-    strokeWeight(2);
-    rect(area.x, area.y, area.w, area.h);
+    drawPanelBox(area, COL_SCREEN);
 
     drawPalette();
     drawStack();
@@ -141,10 +137,15 @@ class ProgramPanel {
                       mouseY >= by && mouseY <= by + PALETTE_BTN_SIZE;
 
       // El asset ya trae su fondo y borde; al pasar el mouse se tiñe un poco
-      pushStyle();
-      if (hover) tint(215, 225, 255);
       image(assets.iconPalette[i], bx, by);
-      popStyle();
+      if (hover) {
+        pushStyle();
+        noFill();
+        stroke(COL_AMBER);
+        strokeWeight(2);
+        rect(bx - 1, by - 1, PALETTE_BTN_SIZE + 2, PALETTE_BTN_SIZE + 2, 6);
+        popStyle();
+      }
 
       if (i == ACT_INTERACT && owner.hintAlpha() > 0) {
         pushStyle();
@@ -163,8 +164,8 @@ class ProgramPanel {
     pushStyle();
     pushMatrix();
 
-    fill(255);
-    stroke(200);
+    fill(COL_WELL);
+    stroke(COL_SLATE_EDGE);
     strokeWeight(1);
     rect(ax, ay, aw, ah);
 
@@ -184,28 +185,32 @@ class ProgramPanel {
       boolean isSelected = i == selectedIndex;
       boolean isHover = !runner.running && !dragging && i == hoverRow;
 
-      // Prioridad: en ejecución (amarillo) > seleccionada > bajo el mouse > normal
-      if (isCurrent)       fill(255, 221, 120);
-      else if (isSelected) fill(186, 211, 255);
-      else if (isHover)    fill(226, 236, 255);
-      else                 fill(247, 249, 255);
-      if (isSelected && !isCurrent) {
-        stroke(25, 55, 150);
-        strokeWeight(3);
+      // Prioridad: en ejecución (ámbar) > seleccionada (cian) > bajo el mouse > normal
+      if (isCurrent)       fill(COL_AMBER);
+      else if (isSelected) fill(color(28, 62, 92));
+      else if (isHover)    fill(color(30, 52, 84));
+      else                 fill(COL_SLATE);
+      if (isCurrent) {
+        stroke(COL_AMBER_EDGE);
+        strokeWeight(1.5);
+      } else if (isSelected) {
+        stroke(COL_CYAN);
+        strokeWeight(2.5);
       } else {
-        stroke(60, 90, 160);
-        strokeWeight(isHover ? 2.5 : 1.5);
+        stroke(isHover ? COL_CYAN : COL_SLATE_EDGE);
+        strokeWeight(isHover ? 2 : 1.5);
       }
-      rect(ax, iy, aw, itemH, 6);
+      rect(ax, iy, aw, itemH, UI_ROW_RADIUS);
       if (isSelected && !isCurrent) {   // barra lateral: se ve incluso de reojo
         noStroke();
-        fill(25, 55, 150);
-        rect(ax, iy, 6, itemH, 6, 0, 0, 6);
+        fill(COL_CYAN);
+        rect(ax, iy, 5, itemH, UI_ROW_RADIUS, 0, 0, UI_ROW_RADIUS);
       }
 
-      fill(30, 50, 100);
+      fill(isCurrent ? COL_NAVY : COL_MUTED);
       text((i + 1) + ".", ax + 10, iy + itemH / 2.0);
       image(assets.iconRow[action], ax + 34, iy + (itemH - ROW_ICON_SIZE) / 2.0);
+      fill(isCurrent ? COL_NAVY : (isSelected ? COL_WHITE : COL_TEXT_SOFT));
       text(ACTION_LABELS[action], ax + 34 + ROW_ICON_SIZE + 8, iy + itemH / 2.0);
 
       float by = iy + (itemH - rowBtn) / 2.0;
@@ -219,7 +224,7 @@ class ProgramPanel {
 
     // Marco por encima del clip
     noFill();
-    stroke(0);
+    stroke(COL_CYAN, 110);
     strokeWeight(1.5);
     rect(ax, ay, aw, ah);
 
@@ -228,7 +233,7 @@ class ProgramPanel {
       float frac = stackScrollY / (float) maxScroll();
       int barH = max(20, (int) (ah * (ah / (float) stackContentH())));
       int barY = ay + (int) ((ah - barH) * frac);
-      fill(160);
+      fill(COL_MUTED);
       noStroke();
       rect(ax + aw - 4, barY, 3, barH, 2);
     }
@@ -242,12 +247,14 @@ class ProgramPanel {
     boolean over = enabled && !runner.running && overStack() &&
                    mouseX >= bx && mouseX <= bx + rowBtn &&
                    mouseY + scrollPx() >= by && mouseY + scrollPx() <= by + rowBtn;
-    fill(!enabled ? color(235) : (over ? color(255, 205, 205) : color(255, 235, 235)));
-    stroke(enabled ? color(160, 60, 60) : color(200));
+    boolean del = icon.equals("✕");                       // ✕ es destructivo: rosa; ▲▼ en cian
+    color accent = del ? COL_PINK : COL_CYAN;
+    fill(!enabled ? COL_WELL : (over ? (del ? color(61, 45, 70) : COL_SLATE) : COL_SCREEN));
+    stroke(!enabled ? COL_SLATE_EDGE : (over ? (del ? COL_PINK_LIGHT : COL_WHITE) : accent));
     strokeWeight(1);
     rect(bx, by, rowBtn, rowBtn, 4);
 
-    fill(enabled ? color(120, 30, 30) : color(180));
+    fill(enabled ? accent : COL_MUTED);
     textAlign(CENTER, CENTER);
     textSize(11);
     text(icon, bx + rowBtn / 2.0, by + rowBtn / 2.0);
